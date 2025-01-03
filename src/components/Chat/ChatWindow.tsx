@@ -4,11 +4,9 @@ import { Chat, Label } from "../../types";
 import { ChatInput } from "./ChatInput";
 import { ChatBubble } from "./Message/ChatBubble";
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-// import { fetchLabels } from "@/data/initialData";
-// import { initialLabels } from "@/data/initialData";
-import { Checkbox } from "../ui/checkbox";
 import { CreateLabelDialog } from "../Labels/CreateLabelDialog";
 import { DeleteConfirmDialog } from "../Labels/DeleteConfirmDialog";
+import axios from "axios";
 
 interface ChatWindowProps {
   chat: Chat | null;
@@ -31,41 +29,38 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
-  // useEffect(() => {
-  //   const fetch = async () => {
-  //     const data = await fetchLabels();
-  //     setLabels(data);
-  //   };
-  //   fetch();
-  // }, []);
+  const handleCreateLabel = async (name: string, color: string, wa_id: string) => {
+    try {
+      const response = await axios.post("http://localhost:3000/api/addLabel/customers", {
+        name: name,
+        color: color,
+        customerId: wa_id, // Replace 123 with the actual customer ID
+      });
 
-  const handleCreateLabel = (name: string, color: string) => {
-    if (labels) {
-      const newLabel: Label = {
-        id: (labels.length + 1).toString(),
-        name,
-        color,
-        count: 0,
-      };
-      setLabels([...labels, newLabel]);
-    } else {
-      // If labels is null or empty, create the first label
-      const newLabel: Label = {
-        id: "1",
-        name,
-        color,
-        count: 0,
-      };
-      setLabels([newLabel]);
+      const newLabel: Label = response.data;
+
+      if (labels) {
+        setLabels([...labels, newLabel]);
+      } else {
+        setLabels([newLabel]);
+      }
+    } catch (error) {
+      console.error("Failed to create a new label:", error);
     }
   };
 
-  const handleDeleteLabel = (id: string) => {
-    if (labels) {
-      setLabels(labels.filter((label) => label.id !== id));
-      if (selectedLabelId === id) {
-        setSelectedLabelId(null);
+  const handleDeleteLabel = async (id: string) => {
+    try {
+      await axios.delete(`http://localhost:3000/api/deleteLabel/${id}`);
+
+      if (labels) {
+        setLabels(labels.filter((label) => label.id !== id));
+        if (selectedLabelId === id) {
+          setSelectedLabelId(null);
+        }
       }
+    } catch (error) {
+      console.error(`Failed to delete label with ID ${id}:`, error);
     }
   };
 
@@ -119,7 +114,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                       </div>
                     </div>
                   </div>
-                  {chat.labels && chat.labels.length > 0 && (
+                  {labels && chat.labels && chat.labels.length > 0 && (
                     <div className="flex items-center gap-2 ml-6">
                       {chat.labels.map((label) => (
                         <div
@@ -147,7 +142,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                   className="w-1/4 h-full object-cover mx-auto mb-6 rounded-full"
                 />
                 <h3 className="mx-auto text-lg font-bold">{chat.name}</h3>
-                <h3 className="mx-auto text-base font-medium">+852 1234 1234</h3>
+                <h3 className="mx-auto text-base font-medium">{chat.wa_id}</h3>
                 <button
                   onClick={() => onToggleImportant?.(chat)}
                   className={`mx-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors mb-4 ${
@@ -163,10 +158,9 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                   </span>
                 </button>
                 {chat.labels && chat.labels.length > 0 && (
-                  <div className="flex gap-2 flex-col w-1/2 self-center">
+                  <div className="flex flex-col items-center">
                     {chat.labels.map((label) => (
-                      <div className="flex items-center gap-3 rounded-full transition-colors h-full">
-                        <Checkbox id={label.id} className="ml-10 hover:bg-gray-200" />
+                      <div className="flex items-center gap-3 rounded-full transition-colors h-full mb-3 w-52 ml-2">
                         <div
                           className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded-full w-full ${label.color.replace(
                             "bg-",
@@ -191,42 +185,42 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                         </div>
                       </div>
                     ))}
-                    <button
-                      onClick={() => setShowCreateDialog(true)}
-                      className="flex items-center gap-3 rounded-lg hover:bg-gray-100 transition-colors h-6 ml-9"
-                    >
-                      <Plus className="w-4 h-4 ml-1 text-gray-500 text-base" />
-                      <span className="text-base font-normal text-gray-500 px-1.5">add label</span>
-                    </button>
-                    <div className="flex flex-row-reverse gap-5 text-gray-500 mt-2">
-                      <button className="rounded-lg hover:bg-gray-100 transition-colors px-1.5 py-0.5 text-base font-medium">
-                        save
-                      </button>
-                      <button className="rounded-lg hover:bg-gray-100 transition-colors px-1.5 py-0.5 text-base font-medium">
-                        cancel
-                      </button>
-                    </div>
-                    {showCreateDialog && (
-                      <CreateLabelDialog
-                        onConfirm={(name, color) => {
-                          handleCreateLabel(name, color);
-                          setShowCreateDialog(false);
-                        }}
-                        onCancel={() => setShowCreateDialog(false)}
-                      />
-                    )}
-
-                    {deleteConfirmId && (
-                      <DeleteConfirmDialog
-                        onConfirm={() => {
-                          handleDeleteLabel(deleteConfirmId);
-                          setDeleteConfirmId(null);
-                        }}
-                        onCancel={() => setDeleteConfirmId(null)}
-                      />
-                    )}
                   </div>
                 )}
+                <div className="flex gap-2 flex-col w-1/2 self-center">
+                  <button
+                    onClick={() => setShowCreateDialog(true)}
+                    className="flex items-center gap-2 rounded-lg hover:bg-gray-100 transition-colors h-6 ml-14 w-1/2"
+                  >
+                    <Plus className="w-4 h-4 ml-3 text-gray-500 text-base" />
+                    <span className="text-base font-normal text-gray-500 px-1.5">add label</span>
+                  </button>
+                  {showCreateDialog && (
+                    <CreateLabelDialog
+                      onConfirm={(name: string, color: string) => {
+                        handleCreateLabel(name, color, chat.wa_id)
+                          .then(() => {
+                            setShowCreateDialog(false);
+                          })
+                          .catch((error) => {
+                            // Handle error
+                            console.error("Error creating label:", error);
+                          });
+                      }}
+                      onCancel={() => setShowCreateDialog(false)}
+                    />
+                  )}
+
+                  {deleteConfirmId && (
+                    <DeleteConfirmDialog
+                      onConfirm={() => {
+                        handleDeleteLabel(deleteConfirmId);
+                        setDeleteConfirmId(null);
+                      }}
+                      onCancel={() => setDeleteConfirmId(null)}
+                    />
+                  )}
+                </div>
               </DialogContent>
             </Dialog>
 

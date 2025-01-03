@@ -1,7 +1,11 @@
 import { db } from "../config/database";
 import { CustomerChatsType } from "../types";
 import { Chat, Label } from "../../types";
-
+interface NewLabel {
+  name: string;
+  color: string;
+  customerId: number;
+}
 export class CustomerChats {
   static async getChats(): Promise<Chat[]> {
     try {
@@ -31,6 +35,7 @@ export class CustomerChats {
             lastMessage: row.input_content || "", // Handle potential null values
             messages: [],
             labels: [], // Add labels later
+            wa_id: row.wa_id,
           };
         }
         if (row.label_name) {
@@ -88,6 +93,53 @@ export class CustomerChats {
       return result.rows;
     } catch (error) {
       console.error("Error fetching labels:", error);
+      throw error;
+    }
+  }
+
+  static async addLable(newLabel: NewLabel): Promise<Label> {
+    try {
+      // Insert the new label into the database
+      const insertResult = await db.query(
+        `
+          INSERT INTO customer_label (name, color, count, customer_id)
+          VALUES ($1, $2, $3, $4)
+          RETURNING id, name, color, count
+        `,
+        [newLabel.name, newLabel.color, 1, newLabel.customerId]
+      );
+
+      if (insertResult.rows.length > 0) {
+        const createdLabel: Label = insertResult.rows[0];
+        return createdLabel;
+      } else {
+        throw new Error("Failed to create a new label.");
+      }
+    } catch (error) {
+      console.error("Error creating a new label:", error);
+      throw error;
+    }
+  }
+
+  static async deleteLabel(labelId: number): Promise<void> {
+    try {
+      // Delete the label from the database
+      const deleteResult = await db.query(
+        `
+            DELETE FROM customer_label
+            WHERE id = $1
+            RETURNING id
+            `,
+        [labelId]
+      );
+
+      if (deleteResult.rows.length > 0) {
+        console.log(`Label with ID ${labelId} has been successfully deleted.`);
+      } else {
+        throw new Error(`Label with ID ${labelId} not found or could not be deleted.`);
+      }
+    } catch (error) {
+      console.error("Error deleting the label:", error);
       throw error;
     }
   }

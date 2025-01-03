@@ -8,6 +8,7 @@ export interface Customer {
 }
 
 export interface Chat {
+  wa_id: string;
   id: string;
   name: string;
   avatar: string;
