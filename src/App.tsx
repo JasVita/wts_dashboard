@@ -4,7 +4,7 @@ import { Sidebar } from "./components/Sidebar/Sidebar";
 import { ChatWindow } from "./components/Chat/ChatWindow";
 import { AnalyticsView } from "./components/Analytics/AnalyticsView";
 import { Chat } from "./types";
-import { fetchData } from "./data/initialData";
+import { fetchChats } from "./data/initialData";
 
 function App() {
   const [activeView, setActiveView] = useState<"messages" | "analytics">("messages");
@@ -15,7 +15,13 @@ function App() {
       avatar: "https://images.unsplash.com/photo-1535378917042-10a22c95931a?w=400&h=400&fit=crop",
       isAI: true,
       lastMessage: "你好！我是 Turoid，請問有什麼可以幫到你？",
-      messages: [{ content: "你好！我是 Turoid，請問有什麼可以幫到你？", isUser: false, timestamp: new Date() }],
+      messages: [
+        {
+          content: "你好！我是 Turoid，請問有什麼可以幫到你？",
+          isUser: false,
+          timestamp: new Date(),
+        },
+      ],
       labels: [],
     },
   ]);
@@ -27,7 +33,7 @@ function App() {
 
   useEffect(() => {
     const fetch = async () => {
-      const data = await fetchData();
+      const data = await fetchChats();
       setInitialChats(data);
       setHumanChats(data.filter((chat) => !chat.isAI));
     };
@@ -85,8 +91,19 @@ function App() {
       <NarrowSidebar activeView={activeView} onViewChange={setActiveView} />
       {activeView === "messages" ? (
         <>
-          <Sidebar aiChats={aiChats} humanChats={humanChats} onChatSelect={setSelectedChat} onStatusChange={handleStatusChange} />
-          <ChatWindow chat={selectedChat} onBack={() => setSelectedChat(null)} onSendMessage={handleSendMessage} onStatusChange={handleStatusChange} onToggleImportant={handleToggleImportant} />
+          <Sidebar
+            aiChats={aiChats}
+            humanChats={humanChats}
+            onChatSelect={setSelectedChat}
+            onStatusChange={handleStatusChange}
+          />
+          <ChatWindow
+            chat={selectedChat}
+            onBack={() => setSelectedChat(null)}
+            onSendMessage={handleSendMessage}
+            onStatusChange={handleStatusChange}
+            onToggleImportant={handleToggleImportant}
+          />
         </>
       ) : (
         <AnalyticsView />

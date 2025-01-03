@@ -13,4 +13,14 @@ router.get("/chats/customers", async (req, res) => {
   }
 });
 
+// router.get("/labels/customers", async (req, res) => {
+//   try {
+//     const labels = await CustomerChats.getLabels(req.body.wa_id);
+//     res.json(labels);
+//   } catch (error) {
+//     console.error("Failed to fetch customers:", error);
+//     res.status(500).json({ error: "Failed to fetch customers" });
+//   }
+// });
+
 export const customerChatsRouter = router;

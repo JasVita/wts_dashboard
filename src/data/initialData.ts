@@ -1,7 +1,8 @@
 import { Chat } from "../types";
 let initialChats: Chat[] = []; // Initialize as an empty array
+// let initialLabels2: Label[] = []; // Initialize as an empty array
 
-export const fetchData = async (): Promise<Chat[]> => {
+export const fetchChats = async (): Promise<Chat[]> => {
   try {
     const response = await fetch("http://localhost:3000/api/chats/customers");
     if (!response.ok) {
@@ -14,6 +15,20 @@ export const fetchData = async (): Promise<Chat[]> => {
   }
   return initialChats;
 };
+
+// export const fetchLabels = async (): Promise<Label[]> => {
+//   try {
+//     const response = await fetch("http://localhost:3000/api/labels/customers");
+//     if (!response.ok) {
+//       throw new Error(`HTTP error! status: ${response.status}`);
+//     }
+
+//     initialLabels2 = await response.json();
+//   } catch (error) {
+//     console.error("Error fetching data:", error);
+//   }
+//   return initialLabels2;
+// };
 
 export const initialLabels = [
   { id: "1", name: "肉毒桿菌去皺查詢", color: "bg-red-500", count: 1 },

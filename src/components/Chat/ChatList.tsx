@@ -1,7 +1,7 @@
-import React from 'react';
-import { Chat } from '../../types';
-import { Star } from 'lucide-react';
-import { INTERFACE_TEXT } from '../../constants/labels';
+import React from "react";
+import { Chat } from "../../types";
+import { Star } from "lucide-react";
+import { INTERFACE_TEXT } from "../../constants/labels";
 
 interface ChatListProps {
   chats: Chat[];
@@ -21,11 +21,7 @@ export const ChatList: React.FC<ChatListProps> = ({ chats, isAI, onChatClick, on
         >
           <div className="flex-shrink-0 relative">
             <div className="w-10 h-10 rounded-full overflow-hidden">
-              <img
-                src={chat.avatar}
-                alt={chat.name}
-                className="w-full h-full object-cover"
-              />
+              <img src={chat.avatar} alt={chat.name} className="w-full h-full object-cover" />
             </div>
             {chat.isImportant && (
               <Star className="w-4 h-4 absolute -top-1 -right-1 text-yellow-500 fill-current" />
@@ -40,9 +36,12 @@ export const ChatList: React.FC<ChatListProps> = ({ chats, isAI, onChatClick, on
               {chat.labels?.map((label) => (
                 <div
                   key={label.id}
-                  className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded-full ${label.color.replace('bg-', 'bg-opacity-20 ')} border border-opacity-20 ${label.color}`}
+                  className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded-full ${label.color.replace(
+                    "bg-",
+                    "bg-opacity-20 "
+                  )} border border-opacity-20 ${label.color}`}
                 >
-                  <span className={`text-xs font-medium ${label.color.replace('bg-', 'text-')}`}>
+                  <span className={`text-xs font-medium ${label.color.replace("bg-", "text-")}`}>
                     {label.name}
                   </span>
                 </div>
@@ -56,9 +55,7 @@ export const ChatList: React.FC<ChatListProps> = ({ chats, isAI, onChatClick, on
               onStatusChange(chat);
             }}
             className={`ml-2 px-4 h-8 text-white text-sm font-medium rounded-full transition-colors flex items-center justify-center ${
-              isAI
-                ? 'bg-green-500 hover:bg-green-600'
-                : 'bg-blue-500 hover:bg-blue-600'
+              isAI ? "bg-green-500 hover:bg-green-600" : "bg-blue-500 hover:bg-blue-600"
             }`}
           >
             {isAI ? INTERFACE_TEXT.ACTIONS.TO_HUMAN : INTERFACE_TEXT.ACTIONS.TO_AI}
@@ -67,4 +64,4 @@ export const ChatList: React.FC<ChatListProps> = ({ chats, isAI, onChatClick, on
       ))}
     </div>
   );
-}
+};

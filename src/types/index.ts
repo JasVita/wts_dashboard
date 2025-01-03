@@ -30,4 +30,4 @@ export interface Label {
   count: number;
 }
 
-export type ChatType = 'all' | 'human' | 'ai' | 'labels';
+export type ChatType = "all" | "human" | "ai" | "labels";
