@@ -72,6 +72,13 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     scrollToBottom();
   }, [chat?.messages]);
 
+  // Update labels when chat.labels changes
+  useEffect(() => {
+    if (chat?.labels) {
+      setLabels(chat.labels);
+    }
+  }, [chat?.labels]);
+
   if (!chat) {
     return (
       <div className="flex-1 flex items-center justify-center bg-gray-50">
@@ -84,7 +91,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     <div className="flex-1 flex flex-col h-full">
       <div className="p-4 bg-white border-b">
         <div className="flex items-center">
-          <button onClick={onBack} className="p-2 hover:bg-gray-100 rounded-full mr-3">
+          <button onClick={onBack} className="-100 rounded-full mr-3">
             <ArrowLeft className="w-6 h-6" />
           </button>
 
@@ -116,7 +123,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                   </div>
                   {labels && chat.labels && chat.labels.length > 0 && (
                     <div className="flex items-center gap-2 ml-6">
-                      {chat.labels.map((label) => (
+                      {labels.map((label) => (
                         <div
                           key={label.id}
                           className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded-full ${label.color.replace(
@@ -157,9 +164,9 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                     {chat.isImportant ? "取消重要標記" : "標記為重要"}
                   </span>
                 </button>
-                {chat.labels && chat.labels.length > 0 && (
+                {labels && chat.labels && chat.labels.length > 0 && (
                   <div className="flex flex-col items-center">
-                    {chat.labels.map((label) => (
+                    {labels.map((label) => (
                       <div className="flex items-center gap-3 rounded-full transition-colors h-full mb-3 w-52 ml-2">
                         <div
                           className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded-full w-full ${label.color.replace(
