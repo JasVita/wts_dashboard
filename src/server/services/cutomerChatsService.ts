@@ -15,7 +15,7 @@ export class CustomerChats {
       //       ORDER BY name, input_time;
       //   `);
       const result = await db.query(`
-          SELECT dm.id, dm.name, dm.input_content, dm.response, dm.input_time, dm.wa_id, cl.name as label_name, cl.id as label_id, cl.color, cl.count
+          SELECT dm.id, dm.name, dm.input_content, dm.response, dm.input_time, dm.input_type, dm.wa_id, cl.name as label_name, cl.id as label_id, cl.color, cl.count
           FROM daily_message dm
           LEFT JOIN customer_label cl ON dm.wa_id = cl.customer_id
           ORDER BY dm.name, dm.input_time;
@@ -60,12 +60,14 @@ export class CustomerChats {
           content: row.input_content,
           isUser: true,
           timestamp: new Date(row.input_time), // Assuming input_time is a timestamp
+          input_type: row.input_type,
         });
         if (row.response) {
           chats[name].messages.push({
             content: row.response,
             isUser: false,
             timestamp: new Date(row.input_time), // Or a slightly later timestamp
+            input_type: row.input_type,
           });
         }
         chats[name].lastMessage = chats[name].messages[chats[name].messages.length - 1].content; //Update last message

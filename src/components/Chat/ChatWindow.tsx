@@ -123,7 +123,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                   </div>
                   {labels && chat.labels && chat.labels.length > 0 && (
                     <div className="flex items-center gap-2 ml-6">
-                      {labels.map((label) => (
+                      {labels.slice(0, 2).map((label) => (
                         <div
                           key={label.id}
                           className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded-full ${label.color.replace(
@@ -138,6 +138,11 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                           </span>
                         </div>
                       ))}
+                      {labels.length > 2 && (
+                        <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-xs font-medium text-gray-500">
+                          <span>...</span>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -258,6 +263,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
               isUser={message.isUser}
               isHuman={message.isHuman}
               timestamp={message.timestamp}
+              inputType={message.input_type}
             />
           ))}
           <div ref={messagesEndRef} />

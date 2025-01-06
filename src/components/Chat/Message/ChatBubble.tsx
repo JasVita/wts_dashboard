@@ -1,8 +1,8 @@
-import React from 'react';
-import { Label } from '../../../types';
-import { MessageBubble } from './MessageBubble';
-import { MessageType } from './types';
-import { getMessageAlignment } from './styles';
+import React from "react";
+import { Label } from "../../../types";
+import { MessageBubble } from "./MessageBubble";
+import { MessageType } from "./types";
+import { getMessageAlignment } from "./styles";
 
 interface ChatBubbleProps {
   content: string;
@@ -10,6 +10,7 @@ interface ChatBubbleProps {
   isHuman?: boolean;
   timestamp: Date;
   labels?: Label[];
+  inputType: string;
 }
 
 export const ChatBubble: React.FC<ChatBubbleProps> = ({
@@ -17,25 +18,22 @@ export const ChatBubble: React.FC<ChatBubbleProps> = ({
   isUser,
   isHuman,
   timestamp,
-  labels
+  labels,
+  inputType,
 }) => {
   const getMessageType = (): MessageType => {
-    if (isUser) return 'user';
-    return isHuman ? 'human' : 'ai';
+    if (isUser) return "user";
+    return isHuman ? "human" : "ai";
   };
 
   const type = getMessageType();
   const alignment = getMessageAlignment(type);
 
   return (
-    <div className={`flex ${alignment === 'left' ? 'justify-start' : 'justify-end'} mb-8`}>
+    <div className={`flex ${alignment === "left" ? "justify-start" : "justify-end"} mb-8`}>
       <div className="flex flex-col max-w-[70%]">
-        <MessageBubble
-          content={content}
-          type={type}
-          timestamp={timestamp}
-        />
-        
+        <MessageBubble content={content} type={type} timestamp={timestamp} inputType={inputType} />
+
         {labels && labels.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-4">
             {labels.map((label) => (
