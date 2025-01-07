@@ -17,7 +17,6 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   inputType,
 }) => {
   const isAudio = inputType === "audio" ? true : false;
-  console.log(inputType);
   return (
     <div className="relative mb-10">
       <MessageContent content={content} type={type} />

@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { MessageSquare, ChevronDown, ChevronRight } from 'lucide-react';
-import { Chat } from '../../types';
-import { ChatList } from './ChatList';
+import React, { useState } from "react";
+import { MessageSquare, ChevronDown, ChevronRight } from "lucide-react";
+import { Chat } from "../../types";
+import { ChatList } from "./ChatList";
 
 interface ChatSectionProps {
   title: string;
@@ -55,4 +55,4 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
       )}
     </div>
   );
-}
+};

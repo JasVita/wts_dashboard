@@ -1,11 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Chat, Label } from "../../types";
 import { ChatSection } from "./ChatSection";
 import { SearchBar } from "../Search/SearchBar";
 import { TabBar } from "../Navigation/TabBar";
 import { LabelManager } from "../Labels/LabelManager";
 
-import { initialLabels } from "../../data/initialData";
+import { getLabels } from "../../data/initialData";
 
 interface SidebarProps {
   aiChats: Chat[];
@@ -23,8 +23,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   const [isLabelsExpanded, setIsLabelsExpanded] = useState(false);
-  const [labels, setLabels] = useState<Label[]>(initialLabels);
+  const [labels, setLabels] = useState<Label[]>();
   const [selectedLabelId, setSelectedLabelId] = useState<string | null>(null);
+
+  // Fetch labels when the component mounts
+  useEffect(() => {
+    const fetchLabels = async () => {
+      const labelsData = await getLabels();
+      if (labelsData) {
+        setLabels(labelsData);
+      }
+    };
+    fetchLabels();
+  }, []);
 
   const counts = {
     all: humanChats.length + aiChats.length,
@@ -34,8 +45,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
   };
 
   const filterChatsByLabel = (chats: Chat[]) => {
+    // console.log("labels: ", labels);
+    // console.log("selected label: ", selectedLabelId);
     if (!selectedLabelId) return chats;
-    return chats.filter((chat) => chat.labels?.some((label) => label.id === selectedLabelId));
+    return chats.filter((chat) =>
+      chat.labels?.some((label) => parseInt(label.id) === parseInt(selectedLabelId))
+    );
   };
 
   const filterChatsBySearch = (chats: Chat[]) => {
@@ -49,37 +64,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const filteredHumanChats = filterChatsByLabel(filterChatsBySearch(humanChats));
   const filteredAiChats = filterChatsByLabel(filterChatsBySearch(aiChats));
-
-  const handleCreateLabel = (name: string, color: string) => {
-    if (labels) {
-      const newLabel: Label = {
-        id: (labels.length + 1).toString(),
-        name,
-        color,
-        count: 0,
-      };
-      setLabels([...labels, newLabel]);
-    } else {
-      // If labels is null or empty, create the first label
-      const newLabel: Label = {
-        id: "1",
-        name,
-        color,
-        count: 0,
-      };
-      setLabels([newLabel]);
-    }
-  };
-
-  const handleDeleteLabel = (id: string) => {
-    if (labels) {
-      setLabels(labels.filter((label) => label.id !== id));
-      if (selectedLabelId === id) {
-        setSelectedLabelId(null);
-      }
-    }
-  };
-
+  // console.log("filtered human: ", filteredHumanChats);
   const handleLabelClick = (labelId: string) => {
     setSelectedLabelId(labelId);
     setActiveTab("all"); // Reset to 'all' tab when selecting a label
@@ -155,9 +140,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         />
       </div>
       <LabelManager
-        labels={labels}
-        onCreateLabel={handleCreateLabel}
-        onDeleteLabel={handleDeleteLabel}
+        labels={labels || []}
         onLabelClick={handleLabelClick}
         selectedLabelId={selectedLabelId}
         isExpanded={isLabelsExpanded}

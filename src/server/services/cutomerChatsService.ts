@@ -9,15 +9,10 @@ interface NewLabel {
 export class CustomerChats {
   static async getChats(): Promise<Chat[]> {
     try {
-      // const result = await db.query(`
-      //       SELECT id, name, input_content, response, input_time, wa_id
-      //       FROM daily_message
-      //       ORDER BY name, input_time;
-      //   `);
       const result = await db.query(`
           SELECT dm.id, dm.name, dm.input_content, dm.response, dm.input_time, dm.input_type, dm.wa_id, cl.name as label_name, cl.id as label_id, cl.color, cl.count
           FROM daily_message dm
-          LEFT JOIN customer_label cl ON dm.wa_id = cl.customer_id
+          LEFT JOIN customer_label cl ON dm.wa_id = ANY(cl.customer_id) -- Match wa_id against TEXT[] column
           ORDER BY dm.name, dm.input_time;
         `);
 
@@ -80,19 +75,22 @@ export class CustomerChats {
     }
   }
 
-  static async getLabels(customerId: number): Promise<Label[]> {
+  static async getTotalLabels(): Promise<Label[]> {
     try {
       const result = await db.query(
         `
-            SELECT name, id, color, count
-            FROM customer_label
-            WHERE customer_id = $1
-            ORDER BY name
-        `,
-        [customerId]
+          SELECT id, name, color, count
+          FROM customer_label
+        `
       );
 
-      return result.rows;
+      // Map the rows to the Label interface
+      return result.rows.map((row: any) => ({
+        id: row.id,
+        name: row.name,
+        color: row.color,
+        count: row.count,
+      }));
     } catch (error) {
       console.error("Error fetching labels:", error);
       throw error;
@@ -101,14 +99,19 @@ export class CustomerChats {
 
   static async addLable(newLabel: NewLabel): Promise<Label> {
     try {
+      // Ensure customerId is passed as an array
+      const customerIdsArray = Array.isArray(newLabel.customerId)
+        ? newLabel.customerId
+        : [newLabel.customerId];
+
       // Insert the new label into the database
       const insertResult = await db.query(
         `
-          INSERT INTO customer_label (name, color, count, customer_id)
-          VALUES ($1, $2, $3, $4)
-          RETURNING id, name, color, count
-        `,
-        [newLabel.name, newLabel.color, 1, newLabel.customerId]
+        INSERT INTO customer_label (name, color, count, customer_id)
+        VALUES ($1, $2, $3, $4)
+        RETURNING id, name, color, count
+      `,
+        [newLabel.name, newLabel.color, 1, customerIdsArray]
       );
 
       if (insertResult.rows.length > 0) {
@@ -142,6 +145,44 @@ export class CustomerChats {
       }
     } catch (error) {
       console.error("Error deleting the label:", error);
+      throw error;
+    }
+  }
+
+  static async assignLabel(labelId: number, waId: string): Promise<void> {
+    try {
+      // Update the customer_id array for the matching labelId
+      await db.query(
+        `
+        UPDATE customer_label
+        SET customer_id = array_append(customer_id, $1::text)
+        WHERE id = $2 AND NOT ($1 = ANY(customer_id))
+        `,
+        [waId, labelId]
+      );
+
+      console.log(`wa_id "${waId}" added to label ID ${labelId}`);
+    } catch (error) {
+      console.error("Error assigning wa_id to label:", error);
+      throw error;
+    }
+  }
+
+  static async removeLabel(labelId: number, waId: string): Promise<void> {
+    try {
+      // Remove the wa_id from the customer_id array for the matching labelId
+      await db.query(
+        `
+        UPDATE customer_label
+        SET customer_id = array_remove(customer_id, $1::text)
+        WHERE id = $2
+        `,
+        [waId, labelId]
+      );
+
+      console.log(`wa_id "${waId}" removed from label ID ${labelId}`);
+    } catch (error) {
+      console.error("Error removing wa_id from label:", error);
       throw error;
     }
   }

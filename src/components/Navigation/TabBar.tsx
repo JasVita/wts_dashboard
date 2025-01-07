@@ -1,6 +1,6 @@
-import React from 'react';
-import { MessageSquare, Bot, Users, Tag, ChevronDown, ChevronRight } from 'lucide-react';
-import { INTERFACE_TEXT } from '../../constants/labels';
+import React from "react";
+import { MessageSquare, Bot, Users, Tag, ChevronDown, ChevronRight } from "lucide-react";
+import { INTERFACE_TEXT } from "../../constants/labels";
 
 interface TabBarProps {
   activeTab: string;
@@ -9,7 +9,7 @@ interface TabBarProps {
     all: number;
     human: number;
     ai: number;
-    labels: number;
+    labels?: number;
   };
   isLabelsExpanded: boolean;
   onLabelsExpandToggle: () => void;
@@ -23,9 +23,9 @@ export const TabBar: React.FC<TabBarProps> = ({
   onLabelsExpandToggle,
 }) => {
   const tabs = [
-    { id: 'all', icon: MessageSquare, label: '全部', count: counts.all },
-    { id: 'human', icon: Users, label: '人工客服', count: counts.human },
-    { id: 'ai', icon: Bot, label: INTERFACE_TEXT.SECTIONS.AI_CHAT, count: counts.ai },
+    { id: "all", icon: MessageSquare, label: "全部", count: counts.all },
+    { id: "human", icon: Users, label: "人工客服", count: counts.human },
+    { id: "ai", icon: Bot, label: INTERFACE_TEXT.SECTIONS.AI_CHAT, count: counts.ai },
   ];
 
   return (
@@ -36,9 +36,7 @@ export const TabBar: React.FC<TabBarProps> = ({
             key={tab.id}
             onClick={() => onTabChange(tab.id)}
             className={`flex items-center px-2 py-1 rounded-full text-xs font-medium transition-colors ${
-              activeTab === tab.id
-                ? 'bg-green-600 text-white'
-                : 'text-gray-600 hover:bg-gray-100'
+              activeTab === tab.id ? "bg-green-600 text-white" : "text-gray-600 hover:bg-gray-100"
             }`}
           >
             <tab.icon className="w-3.5 h-3.5 mr-1" />
@@ -51,9 +49,7 @@ export const TabBar: React.FC<TabBarProps> = ({
         <button
           onClick={onLabelsExpandToggle}
           className={`flex items-center px-2 py-1 rounded-full text-xs font-medium transition-colors ${
-            activeTab === 'labels'
-              ? 'bg-green-600 text-white'
-              : 'text-gray-600 hover:bg-gray-100'
+            activeTab === "labels" ? "bg-green-600 text-white" : "text-gray-600 hover:bg-gray-100"
           }`}
         >
           <Tag className="w-3.5 h-3.5 mr-1" />

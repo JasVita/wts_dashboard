@@ -1,6 +1,6 @@
-import { Chat } from "../types";
+import { Chat, Label } from "../types";
 let initialChats: Chat[] = []; // Initialize as an empty array
-// let initialLabels2: Label[] = []; // Initialize as an empty array
+let initialLabels: Label[] = []; // Initialize as an empty array
 
 export const fetchChats = async (): Promise<Chat[]> => {
   try {
@@ -16,31 +16,31 @@ export const fetchChats = async (): Promise<Chat[]> => {
   return initialChats;
 };
 
-// export const fetchLabels = async (): Promise<Label[]> => {
-//   try {
-//     const response = await fetch("http://localhost:3000/api/labels/customers");
-//     if (!response.ok) {
-//       throw new Error(`HTTP error! status: ${response.status}`);
-//     }
+export const getLabels = async () => {
+  try {
+    const response = await fetch("http://localhost:3000/api/getTotalLabels/customers");
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
 
-//     initialLabels2 = await response.json();
-//   } catch (error) {
-//     console.error("Error fetching data:", error);
-//   }
-//   return initialLabels2;
-// };
+    initialLabels = await response.json();
+  } catch (error) {
+    console.error("Error fetching data:", error);
+  }
+  return initialLabels;
+};
 
-export const initialLabels = [
-  { id: "1", name: "肉毒桿菌去皺查詢", color: "bg-red-500", count: 1 },
-  { id: "2", name: "美白療程查詢", color: "bg-green-500", count: 1 },
-  { id: "3", name: "豐唇療程查詢", color: "bg-blue-500", count: 1 },
-  { id: "4", name: "暗瘡疤痕療程查詢", color: "bg-purple-500", count: 1 },
-  { id: "5", name: "瘦面療程", color: "bg-yellow-500", count: 1 },
-  { id: "6", name: "激光脫毛查詢", color: "bg-orange-500", count: 1 },
-  { id: "7", name: "雙下巴去脂查詢", color: "bg-pink-500", count: 1 },
-  { id: "8", name: "填充療程", color: "bg-indigo-500", count: 1 },
-  { id: "9", name: "皮秒激光美白查詢", color: "bg-teal-500", count: 1 },
-];
+// export const initialLabels = [
+//   { id: "1", name: "肉毒桿菌去皺查詢", color: "bg-red-500", count: 1 },
+//   { id: "2", name: "美白療程查詢", color: "bg-green-500", count: 1 },
+//   { id: "3", name: "豐唇療程查詢", color: "bg-blue-500", count: 1 },
+//   { id: "4", name: "暗瘡疤痕療程查詢", color: "bg-purple-500", count: 1 },
+//   { id: "5", name: "瘦面療程", color: "bg-yellow-500", count: 1 },
+//   { id: "6", name: "激光脫毛查詢", color: "bg-orange-500", count: 1 },
+//   { id: "7", name: "雙下巴去脂查詢", color: "bg-pink-500", count: 1 },
+//   { id: "8", name: "填充療程", color: "bg-indigo-500", count: 1 },
+//   { id: "9", name: "皮秒激光美白查詢", color: "bg-teal-500", count: 1 },
+// ];
 
 // export const initialChats = [
 //   {

@@ -1,12 +1,19 @@
 import React, { useEffect, useRef, useState } from "react";
-import { ArrowLeft, Plus, Star, X } from "lucide-react";
+import { ArrowLeft, Plus, Star, X, Equal } from "lucide-react";
 import { Chat, Label } from "../../types";
 import { ChatInput } from "./ChatInput";
 import { ChatBubble } from "./Message/ChatBubble";
-import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose,
+} from "@/components/ui/dialog";
 import { CreateLabelDialog } from "../Labels/CreateLabelDialog";
 import { DeleteConfirmDialog } from "../Labels/DeleteConfirmDialog";
 import axios from "axios";
+import { getLabels } from "@/data/initialData";
 
 interface ChatWindowProps {
   chat: Chat | null;
@@ -25,9 +32,78 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
 }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [labels, setLabels] = useState<Label[] | null>(chat?.labels || []);
+  const [totalLabels, setTotalLabels] = useState<Label[] | null>(chat?.labels || []);
   const [selectedLabelId, setSelectedLabelId] = useState<string | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [selectedLabels, setSelectedLabels] = useState<string[]>(
+    chat?.labels?.map((label) => label.id) || []
+  );
+  const [originalLabels, setOriginalLabels] = useState<string[]>(
+    chat?.labels?.map((label) => label.id) || []
+  );
+
+  // Fetch labels when the component mounts
+  useEffect(() => {
+    const fetchLabels = async () => {
+      const labelsData = await getLabels();
+      if (labelsData) {
+        setTotalLabels(labelsData);
+      }
+    };
+    fetchLabels();
+  }, []);
+
+  const handleOpenDialog = () => {
+    setSelectedLabels(chat?.labels?.map((label) => label.id) || []); // Reset selected labels
+    setOriginalLabels(chat?.labels?.map((label) => label.id) || []); // Reset original labels
+  };
+
+  const handleCheckboxChange = (labelId: string) => {
+    setSelectedLabels(
+      (prev) =>
+        prev.includes(labelId)
+          ? prev.filter((id) => id !== labelId) // Remove if unchecked
+          : [...prev, labelId] // Add if checked
+    );
+  };
+
+  const handleCancel = () => {
+    setSelectedLabels(originalLabels); // Revert to the original labels
+  };
+
+  const handleSave = async () => {
+    if (!chat) {
+      console.error("Chat is null or undefined.");
+      return;
+    }
+
+    const addedLabels = selectedLabels.filter((id) => !originalLabels.includes(id)); // Newly selected labels
+    const removedLabels = originalLabels.filter((id) => !selectedLabels.includes(id)); // Newly deselected labels
+
+    try {
+      // Add wa_id to newly selected labels
+      for (const labelId of addedLabels) {
+        console.log("LabelID: ", labelId);
+        await axios.patch(`http://localhost:3000/api/assignLabel/${labelId}`, {
+          wa_id: chat.wa_id, // Add the current chat's wa_id
+        });
+      }
+
+      // Remove wa_id from newly deselected labels
+      for (const labelId of removedLabels) {
+        await axios.patch(`http://localhost:3000/api/removeLabel/${labelId}`, {
+          wa_id: chat.wa_id, // Remove the current chat's wa_id
+        });
+      }
+      console.log("Labels updated successfully!");
+
+      // Refresh the page to fetch and display the latest state
+      window.location.reload();
+    } catch (error) {
+      console.error("Failed to update labels:", error);
+    }
+  };
 
   const handleCreateLabel = async (name: string, color: string, wa_id: string) => {
     try {
@@ -86,6 +162,9 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
       </div>
     );
   }
+  console.log("selected:", selectedLabels);
+  console.log("original:", originalLabels);
+  console.log("total:", totalLabels);
 
   return (
     <div className="flex-1 flex flex-col h-full">
@@ -207,6 +286,74 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                     <Plus className="w-4 h-4 ml-3 text-gray-500 text-base" />
                     <span className="text-base font-normal text-gray-500 px-1.5">add label</span>
                   </button>
+                  <Dialog>
+                    <DialogTrigger onClick={handleOpenDialog}>
+                      <button className="flex items-center gap-2 rounded-lg hover:bg-gray-100 transition-colors h-6 ml-14">
+                        <Equal className="w-4 h-4 ml-3 text-gray-500 text-base"></Equal>
+                        <span className="text-base font-normal text-gray-500 px-1.5">
+                          assign label
+                        </span>
+                      </button>
+                    </DialogTrigger>
+                    <DialogContent className="w-96">
+                      <div className="flex flex-col items-center p-4">
+                        <h3 className="text-lg font-medium text-gray-700 mb-4">Assign Labels</h3>
+
+                        {/* Scrollable Section */}
+                        <div className="flex flex-col gap-3 w-2/3 max-h-48 overflow-y-auto pr-1">
+                          {totalLabels?.map((label) => (
+                            <div
+                              key={label.id}
+                              className="flex items-center gap-3 rounded-full transition-colors h-full w-full"
+                            >
+                              <input
+                                type="checkbox"
+                                value={label.id}
+                                checked={selectedLabels.includes(String(label.id))} // Pre-check based on state
+                                onChange={(e) => handleCheckboxChange(e.target.value)}
+                                className="checked:bg-gray-400 h-5 w-5"
+                              />
+                              <div
+                                className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded-full w-full ${label.color.replace(
+                                  "bg-",
+                                  "bg-opacity-20 "
+                                )} border border-opacity-20 ${label.color}`}
+                              >
+                                <span
+                                  className={`text-sm font-medium ${label.color.replace(
+                                    "bg-",
+                                    "text-"
+                                  )}`}
+                                >
+                                  {label.name}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        <div className="flex justify-end gap-2 mt-6 self-end">
+                          <DialogClose>
+                            <button
+                              onClick={handleCancel}
+                              className="px-4 py-2 text-sm font-medium text-gray-600 border border-gray-300 rounded-md hover:bg-gray-100 transition"
+                            >
+                              Cancel
+                            </button>
+                          </DialogClose>
+                          <DialogClose>
+                            <button
+                              onClick={handleSave}
+                              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition"
+                            >
+                              Save
+                            </button>
+                          </DialogClose>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+
                   {showCreateDialog && (
                     <CreateLabelDialog
                       onConfirm={(name: string, color: string) => {
@@ -263,7 +410,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
               isUser={message.isUser}
               isHuman={message.isHuman}
               timestamp={message.timestamp}
-              inputType={message.input_type}
+              inputType={message.input_type || "text"}
             />
           ))}
           <div ref={messagesEndRef} />

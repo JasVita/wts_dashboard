@@ -13,16 +13,6 @@ router.get("/chats/customers", async (req, res) => {
   }
 });
 
-// router.get("/labels/customers", async (req, res) => {
-//   try {
-//     const labels = await CustomerChats.getLabels(req.body.wa_id);
-//     res.json(labels);
-//   } catch (error) {
-//     console.error("Failed to fetch customers:", error);
-//     res.status(500).json({ error: "Failed to fetch customers" });
-//   }
-// });
-
 router.post("/addLabel/customers", async (req, res) => {
   try {
     const { name, color, customerId } = req.body;
@@ -60,6 +50,59 @@ router.delete("/deleteLabel/:labelId", async (req, res) => {
   } catch (error) {
     console.error("Failed to delete the label:", error);
     res.status(500).json({ error: "Failed to delete the label." });
+  }
+});
+
+router.get("/getTotalLabels/customers", async (req, res) => {
+  try {
+    // Fetch all labels using the getTotalLabels function
+    const labels = await CustomerChats.getTotalLabels();
+
+    // Return the labels in the response
+    res.status(200).json(labels);
+  } catch (error) {
+    console.error("Failed to fetch total labels:", error);
+    res.status(500).json({ error: "Failed to fetch total labels" });
+  }
+});
+
+router.patch("/assignLabel/:labelId", async (req, res) => {
+  const { labelId } = req.params;
+  const { wa_id } = req.body;
+
+  if (!wa_id) {
+    return res.status(400).json({ error: "wa_id is required" });
+  }
+
+  try {
+    // Call the assignLabel function
+    await CustomerChats.assignLabel(Number(labelId), wa_id);
+
+    // Respond with success message
+    res.status(200).json({ message: `wa_id "${wa_id}" added to label ID ${labelId}` });
+  } catch (error) {
+    console.error(`Failed to assign wa_id to label ID ${labelId}:`, error);
+    res.status(500).json({ error: "Failed to assign label" });
+  }
+});
+
+router.patch("/removeLabel/:labelId", async (req, res) => {
+  const { labelId } = req.params;
+  const { wa_id } = req.body;
+
+  if (!wa_id) {
+    return res.status(400).json({ error: "wa_id is required" });
+  }
+
+  try {
+    // Call the removeLabel function
+    await CustomerChats.removeLabel(Number(labelId), wa_id);
+
+    // Respond with success message
+    res.status(200).json({ message: `wa_id "${wa_id}" removed from label ID ${labelId}` });
+  } catch (error) {
+    console.error(`Failed to remove wa_id from label ID ${labelId}:`, error);
+    res.status(500).json({ error: "Failed to remove label" });
   }
 });
 
