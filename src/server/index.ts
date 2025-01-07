@@ -3,6 +3,7 @@ import cors from "cors";
 import { customerStatsRouter } from "./routes/customerStats";
 import { testConnection } from "./config/database";
 import { customerChatsRouter } from "./routes/customerChats";
+import { messagesRouter } from "./routes/messages";
 
 const app = express();
 
@@ -12,6 +13,7 @@ app.use(express.json());
 // Routes
 app.use("/api/stats", customerStatsRouter);
 app.use("/api", customerChatsRouter);
+app.use("/api", messagesRouter);
 
 const PORT = process.env.PORT || 3000;
 

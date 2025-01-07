@@ -6,6 +6,7 @@ import { AnalyticsView } from "./components/Analytics/AnalyticsView";
 import { Chat } from "./types";
 import { fetchChats } from "./data/initialData";
 import axios from "axios";
+import { franc } from "franc";
 
 function App() {
   const [activeView, setActiveView] = useState<"messages" | "analytics">("messages");
@@ -34,6 +35,23 @@ function App() {
 
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
 
+  function formatDate(date: Date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0"); // Months are 0-indexed
+    const day = String(date.getDate()).padStart(2, "0");
+
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    const seconds = String(date.getSeconds()).padStart(2, "0");
+
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+  }
+
+  function getWeekday(date: Date) {
+    const weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    return weekdays[date.getDay()];
+  }
+
   useEffect(() => {
     const fetch = async () => {
       const data = await fetchChats();
@@ -57,48 +75,65 @@ function App() {
   const handleSendMessage = async (message: string) => {
     if (!selectedChat) return;
 
-    const newMessage = {
-      content: message,
-      isUser: false,
-      isHuman: true,
-      timestamp: new Date(),
-    };
+    try {
+      const whatsappResponse = await axios.post(
+        "https://graph.facebook.com/v20.0/384059768129902/messages",
+        {
+          messaging_product: "whatsapp",
+          recipient_type: "individual",
+          to: selectedChat.wa_id, // Replace with the target phone number in E.164 format
+          type: "text",
+          text: {
+            preview_url: true,
+            body: message, // Message content
+          },
+        },
+        {
+          headers: {
+            Authorization: `Bearer EAAHkXlet8soBOwkVPF0dxKbVT7NzWSdOVKnpqeBdDfxA31ILVQQTaZAZCAhQdLWZApEwRB5oHKTuF1Wh9aidwN38TSALejyzVAeZCOBksHt12WOvfaONM4zuscFy0Y7XVcoZBELky7e0vK1wU3uuDRMb3lPb0weYEhCBy2WRzZBOqV2bCz3upZAhkKvaOzG7UppNQZDZD`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
-    const updatedChat = {
-      ...selectedChat,
-      lastMessage: message,
-      messages: [...selectedChat.messages, newMessage],
-    };
+      // Step 2: Store the message and API response in the database
+      await axios.post("http://localhost:3000/api/messages/store", {
+        wa_id: selectedChat.wa_id,
+        name: selectedChat.name,
+        language: franc(message),
+        input_time: formatDate(new Date()),
+        weekday: getWeekday(new Date()),
+        response: message,
+      });
 
-    // make an API request
+      console.log("Message sent successfully:", whatsappResponse.data);
 
-    // Step 1: Send the message via WhatsApp API
-    const whatsappResponse = await axios.post("http://localhost:3000/api/whatsapp/sendMessage", {
-      chatId: selectedChat.id,
-      message: message,
-    });
-
-    const isSuccess = whatsappResponse.status === 200;
-
-    // Step 2: Store the message and API response in the database
-    await axios.post("http://localhost:3000/api/messages/store", {
-      chatId: selectedChat.id,
-      message: {
+      const newMessage = {
         content: message,
         isUser: false,
         isHuman: true,
         timestamp: new Date(),
-        status: isSuccess ? "sent" : "failed",
-        response: whatsappResponse.data,
-      },
-    });
+      };
 
-    if (selectedChat.isAI) {
-      setAiChats(aiChats.map((c) => (c.id === selectedChat.id ? updatedChat : c)));
-    } else {
-      setHumanChats(humanChats.map((c) => (c.id === selectedChat.id ? updatedChat : c)));
+      const updatedChat = {
+        ...selectedChat,
+        lastMessage: message,
+        messages: [...selectedChat.messages, newMessage],
+      };
+
+      if (selectedChat.isAI) {
+        setAiChats(aiChats.map((c) => (c.id === selectedChat.id ? updatedChat : c)));
+      } else {
+        setHumanChats(humanChats.map((c) => (c.id === selectedChat.id ? updatedChat : c)));
+      }
+      setSelectedChat(updatedChat);
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        console.error("API responded with an error:", error.response?.data || error.message);
+      } else {
+        console.error("Unexpected error:", error);
+      }
     }
-    setSelectedChat(updatedChat);
   };
 
   const handleToggleImportant = (chat: Chat) => {

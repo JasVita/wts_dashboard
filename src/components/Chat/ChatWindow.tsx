@@ -84,7 +84,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     try {
       // Add wa_id to newly selected labels
       for (const labelId of addedLabels) {
-        console.log("LabelID: ", labelId);
+        // console.log("LabelID: ", labelId);
         await axios.patch(`http://localhost:3000/api/assignLabel/${labelId}`, {
           wa_id: chat.wa_id, // Add the current chat's wa_id
         });
@@ -162,9 +162,9 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
       </div>
     );
   }
-  console.log("selected:", selectedLabels);
-  console.log("original:", originalLabels);
-  console.log("total:", totalLabels);
+  // console.log("selected:", selectedLabels);
+  // console.log("original:", originalLabels);
+  // console.log("total:", totalLabels);
 
   return (
     <div className="flex-1 flex flex-col h-full">

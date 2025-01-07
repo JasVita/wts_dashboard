@@ -15,3 +15,12 @@ export interface CustomerChatsType {
   response: any;
   input_time: Date;
 }
+
+export interface Message {
+  wa_id: string;
+  name: string;
+  language: string;
+  input_time: string;
+  weekday: string;
+  response: string;
+}
