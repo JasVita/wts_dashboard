@@ -140,9 +140,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
         />
       </div>
       <LabelManager
-        labels={labels || []}
+        passedlabels={labels || []}
         onLabelClick={handleLabelClick}
-        selectedLabelId={selectedLabelId}
+        passedselectedLabelId={selectedLabelId}
         isExpanded={isLabelsExpanded}
         onToggleExpand={() => setIsLabelsExpanded(!isLabelsExpanded)}
       />

@@ -4,7 +4,6 @@ import { Chat, Label } from "../../types";
 interface NewLabel {
   name: string;
   color: string;
-  customerId: number;
 }
 export class CustomerChats {
   static async getChats(): Promise<Chat[]> {
@@ -103,10 +102,7 @@ export class CustomerChats {
 
   static async addLable(newLabel: NewLabel): Promise<Label> {
     try {
-      // Ensure customerId is passed as an array
-      const customerIdsArray = Array.isArray(newLabel.customerId)
-        ? newLabel.customerId
-        : [newLabel.customerId];
+      const customerIdsArray: never[] = [];
 
       // Insert the new label into the database
       const insertResult = await db.query(
