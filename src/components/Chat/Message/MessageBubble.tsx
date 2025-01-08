@@ -16,10 +16,15 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   timestamp,
   inputType,
 }) => {
-  const isAudio = inputType === "audio" ? true : false;
+  const isAudio = inputType === "audio";
+  let isImage = inputType == "image" && content.startsWith("https:");
   return (
     <div className="relative mb-10">
-      <MessageContent content={content} type={type} />
+      {isImage ? (
+        <img src={content} className="max-w-full max-h-64 rounded-lg shadow-md" />
+      ) : (
+        <MessageContent content={content} type={type} />
+      )}
       {isAudio && <div>audio message</div>}
       <MessageTime type={type} timestamp={timestamp} />
     </div>
