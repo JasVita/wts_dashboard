@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { NarrowSidebar } from "./components/Navigation/NarrowSidebar";
 import { Sidebar } from "./components/Sidebar/Sidebar";
 import { ChatWindow } from "./components/Chat/ChatWindow";

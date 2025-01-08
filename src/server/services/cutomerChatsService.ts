@@ -51,12 +51,14 @@ export class CustomerChats {
             }
           }
         }
-        chats[name].messages.push({
-          content: row.input_content,
-          isUser: true,
-          timestamp: new Date(row.input_time), // Assuming input_time is a timestamp
-          input_type: row.input_type,
-        });
+        if (row.input_content) {
+          chats[name].messages.push({
+            content: row.input_content,
+            isUser: true,
+            timestamp: new Date(row.input_time), // Assuming input_time is a timestamp
+            input_type: row.input_type,
+          });
+        }
         if (row.response) {
           chats[name].messages.push({
             content: row.response,
