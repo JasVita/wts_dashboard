@@ -60,9 +60,11 @@ export class CustomerChats {
           });
         }
         if (row.response) {
+          const isHuman = row.response.startsWith("[HUMAN]");
           chats[name].messages.push({
-            content: row.response,
+            content: row.response.replace("[HUMAN] ", ""),
             isUser: false,
+            isHuman: isHuman,
             timestamp: new Date(row.input_time), // Or a slightly later timestamp
             input_type: row.input_type,
           });

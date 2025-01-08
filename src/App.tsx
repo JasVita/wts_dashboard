@@ -103,7 +103,7 @@ function App() {
         language: franc(message),
         input_time: formatDate(new Date()),
         weekday: getWeekday(new Date()),
-        response: message,
+        response: `[HUMAN] ${message}`,
       });
 
       console.log("Message sent successfully:", whatsappResponse.data);
