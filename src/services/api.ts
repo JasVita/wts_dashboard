@@ -2,12 +2,10 @@ import { CustomerStats } from '../types';
 
 export const getCustomerStats = async (): Promise<CustomerStats> => {
   try {
-    const response = await fetch('http://localhost:3000/api/stats/customers');
-    
+    const response = await fetch('http://localhost:5000/api/stats/customers');
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    
     const data = await response.json();
     return data;
   } catch (error) {

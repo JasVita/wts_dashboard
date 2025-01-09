@@ -13,7 +13,7 @@ export const useCustomerStats = () => {
     const fetchStats = async () => {
       try {
         setLoading(true);
-        const response = await fetch('http://localhost:3000/api/stats/customers');
+        const response = await fetch('http://localhost:5000/api/stats/customers');
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }

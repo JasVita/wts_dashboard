@@ -29,21 +29,17 @@ function App() {
       labels: [],
     },
   ]);
-  const [initialChats, setInitialChats] = useState<Chat[]>([]); // Add state for initial chats
-
+  const [initialChats, setInitialChats] = useState<Chat[]>([]);
   const [humanChats, setHumanChats] = useState<Chat[]>(initialChats.filter((chat) => !chat.isAI));
-
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
 
   function formatDate(date: Date) {
     const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0"); // Months are 0-indexed
+    const month = String(date.getMonth() + 1).padStart(2, "0");
     const day = String(date.getDate()).padStart(2, "0");
-
     const hours = String(date.getHours()).padStart(2, "0");
     const minutes = String(date.getMinutes()).padStart(2, "0");
     const seconds = String(date.getSeconds()).padStart(2, "0");
-
     return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
   }
 
@@ -77,27 +73,28 @@ function App() {
 
     try {
       const whatsappResponse = await axios.post(
-        "https://graph.facebook.com/v20.0/384059768129902/messages",
+        `https://graph.facebook.com/${import.meta.env.VITE_WHATSAPP_API_VERSION}/${
+          import.meta.env.VITE_WHATSAPP_PHONE_NUMBER_ID
+        }/messages`,
         {
           messaging_product: "whatsapp",
           recipient_type: "individual",
-          to: selectedChat.wa_id, // Replace with the target phone number in E.164 format
+          to: selectedChat.wa_id,
           type: "text",
           text: {
             preview_url: true,
-            body: message, // Message content
+            body: message,
           },
         },
         {
           headers: {
-            Authorization: `Bearer EAAHkXlet8soBOwkVPF0dxKbVT7NzWSdOVKnpqeBdDfxA31ILVQQTaZAZCAhQdLWZApEwRB5oHKTuF1Wh9aidwN38TSALejyzVAeZCOBksHt12WOvfaONM4zuscFy0Y7XVcoZBELky7e0vK1wU3uuDRMb3lPb0weYEhCBy2WRzZBOqV2bCz3upZAhkKvaOzG7UppNQZDZD`,
+            Authorization: `Bearer ${import.meta.env.VITE_WHATSAPP_ACCESS_TOKEN}`,
             "Content-Type": "application/json",
           },
         }
       );
 
-      // Step 2: Store the message and API response in the database
-      await axios.post("http://localhost:3000/api/messages/store", {
+      await axios.post("http://localhost:5000/api/messages/store", {
         wa_id: selectedChat.wa_id,
         name: selectedChat.name,
         language: franc(message),
@@ -147,6 +144,7 @@ function App() {
 
     setSelectedChat(updatedChat);
   };
+
   return (
     <div className="flex h-screen bg-gray-100">
       <NarrowSidebar activeView={activeView} onViewChange={setActiveView} />

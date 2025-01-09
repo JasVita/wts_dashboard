@@ -1,16 +1,7 @@
-import React, { useEffect, useState } from "react";
-import { MessageSquare } from "lucide-react";
-import { MetricsCard } from "../Common/MetricsCard";
-
-interface CustomerData {
-  count: number;
-  names: string[];
-}
+// ... imports ...
 
 export const CustomerStatsCard: React.FC = () => {
-  const [data, setData] = useState<CustomerData>({ count: 0, names: [] });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // ... other code ...
 
   useEffect(() => {
     const fetchData = async () => {
@@ -18,11 +9,11 @@ export const CustomerStatsCard: React.FC = () => {
         setLoading(true);
 
         // Fetch customer stats
-        const countResponse = await fetch("http://localhost:3000/api/stats/stats/count");
+        const countResponse = await fetch("http://localhost:5000/api/stats/stats/count");
         const countData = await countResponse.json();
 
         // Fetch customer names
-        const namesResponse = await fetch("http://localhost:3000/api/stats/stats/customers");
+        const namesResponse = await fetch("http://localhost:5000/api/stats/stats/customers");
         const namesData = await namesResponse.json();
 
         setData({
@@ -39,13 +30,5 @@ export const CustomerStatsCard: React.FC = () => {
     fetchData();
   }, []);
 
-  if (loading) {
-    return <MetricsCard title="客戶總數" value="載入中..." change="--" changeType="positive" Icon={MessageSquare} iconColor="text-blue-500" />;
-  }
-
-  if (error) {
-    return <MetricsCard title="客戶總數" value="載入失敗" change="請稍後再試" changeType="negative" Icon={MessageSquare} iconColor="text-red-500" />;
-  }
-
-  return <MetricsCard title="客戶總數" value={data.count.toString()} change={`${data.names.length} 位活躍客戶`} changeType="positive" Icon={MessageSquare} iconColor="text-blue-500" />;
+  // ... rest of the component ...
 };

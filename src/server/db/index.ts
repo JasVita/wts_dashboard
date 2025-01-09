@@ -2,27 +2,34 @@ import { Pool } from "pg";
 import dotenv from "dotenv";
 
 dotenv.config();
-// wts-db.cb4ygokymibc.ap-southeast-2.rds.amazonaws.com
+
+if (!process.env.DB_HOST || !process.env.DB_NAME || !process.env.DB_USER || !process.env.DB_PASSWORD) {
+  throw new Error('Missing required database environment variables');
+}
+
 export const pool = new Pool({
-  host: process.env.DB_HOST || "wts-db.cb4ygokymibc.ap-southeast-2.rds.amazonaws.com",
+  host: process.env.DB_HOST,
   port: parseInt(process.env.DB_PORT || "5432"),
-  database: process.env.DB_NAME || "wtsdb",
-  user: process.env.DB_USER || "DBadmin",
-  password: process.env.DB_PASSWORD || "vitalogy123",
+  database: process.env.DB_NAME,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
   ssl: {
     rejectUnauthorized: false,
   },
 });
 
-export const testConnection = async () => {
-  try {
-    const client = await pool.connect();
-    const result = await client.query("SELECT NOW()");
-    client.release();
-    console.log("Database connection successful:", result.rows[0]);
-    return true;
-  } catch (err) {
-    console.error("Database connection error:", err);
-    return false;
+// Test the connection
+pool.connect((err, client, release) => {
+  if (err) {
+    console.error('Error connecting to the database:', err);
+    return;
   }
-};
+  client.query('SELECT NOW()', (err, result) => {
+    release();
+    if (err) {
+      console.error('Error executing query:', err);
+      return;
+    }
+    console.log('Connected to PostgreSQL database');
+  });
+});
