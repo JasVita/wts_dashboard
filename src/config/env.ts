@@ -1,13 +1,13 @@
 export const env = {
   api: {
-    baseUrl: 'http://localhost:3000/api'
+    baseUrl: 'http://localhost:5000/api'
   },
   database: {
-    host: 'wts-db.cb4ygokymibc.ap-southeast-2.rds.amazonaws.com',
+    host: 'turoidd.c988g8wysqw0.us-east-1.rds.amazonaws.com',
     port: 5432,
-    name: 'wtsdb',
+    name: 'turoid_test',
     user: 'DBadmin',
-    password: 'vitalogy123',
+    password: 'turoid123',
     ssl: {
       rejectUnauthorized: false,
       mode: 'require'
