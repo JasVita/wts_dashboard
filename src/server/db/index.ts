@@ -1,5 +1,8 @@
-import { Pool } from "pg";
+import pg from "pg";
 import dotenv from "dotenv";
+
+const { Pool } = pg;
+// type PoolConfig = pg.PoolConfig; // if you also need PoolConfig
 
 dotenv.config();
 
