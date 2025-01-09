@@ -1,9 +1,9 @@
 import React from 'react';
-import { MessageSquare, BarChart2 } from 'lucide-react';
+import { MessageSquare, BarChart2, FileText } from 'lucide-react';
 
 interface NarrowSidebarProps {
-  activeView: 'messages' | 'analytics';
-  onViewChange: (view: 'messages' | 'analytics') => void;
+  activeView: 'messages' | 'analytics' | 'documents';
+  onViewChange: (view: 'messages' | 'analytics' | 'documents') => void;
 }
 
 export const NarrowSidebar: React.FC<NarrowSidebarProps> = ({
@@ -25,7 +25,7 @@ export const NarrowSidebar: React.FC<NarrowSidebarProps> = ({
       </button>
       <button
         onClick={() => onViewChange('analytics')}
-        className={`p-3 rounded-lg transition-colors ${
+        className={`p-3 rounded-lg mb-2 transition-colors ${
           activeView === 'analytics'
             ? 'bg-green-50 text-green-600'
             : 'text-gray-400 hover:bg-gray-50'
@@ -33,6 +33,17 @@ export const NarrowSidebar: React.FC<NarrowSidebarProps> = ({
         title="數據分析"
       >
         <BarChart2 className="w-5 h-5" />
+      </button>
+      <button
+        onClick={() => onViewChange('documents')}
+        className={`p-3 rounded-lg transition-colors ${
+          activeView === 'documents'
+            ? 'bg-green-50 text-green-600'
+            : 'text-gray-400 hover:bg-gray-50'
+        }`}
+        title="文件"
+      >
+        <FileText className="w-5 h-5" />
       </button>
     </div>
   );

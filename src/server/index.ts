@@ -10,9 +10,8 @@ dotenv.config();
 
 const app = express();
 
-app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:8080'
-}));
+// Enable CORS for all routes
+app.use(cors());
 app.use(express.json());
 
 // Routes

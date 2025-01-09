@@ -1,19 +1,24 @@
-// ... imports ...
+import React, { useEffect, useState } from 'react';
+import { MessageSquare } from 'lucide-react';
+import { MetricsCard } from '../Common/MetricsCard';
+
+interface CustomerData {
+  count: number;
+  names: string[];
+}
 
 export const CustomerStatsCard: React.FC = () => {
-  // ... other code ...
+  const [data, setData] = useState<CustomerData>({ count: 0, names: [] });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-
-        // Fetch customer stats
-        const countResponse = await fetch("http://localhost:5000/api/stats/stats/count");
+        const countResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/stats/stats/count`);
         const countData = await countResponse.json();
-
-        // Fetch customer names
-        const namesResponse = await fetch("http://localhost:5000/api/stats/stats/customers");
+        const namesResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/stats/stats/customers`);
         const namesData = await namesResponse.json();
 
         setData({
@@ -21,7 +26,7 @@ export const CustomerStatsCard: React.FC = () => {
           names: namesData.map((customer: { name: string }) => customer.name),
         });
       } catch (err) {
-        setError("Failed to fetch customer data");
+        setError("無法載入客戶資料");
         console.error("Error fetching customer data:", err);
       } finally {
         setLoading(false);
@@ -30,5 +35,14 @@ export const CustomerStatsCard: React.FC = () => {
     fetchData();
   }, []);
 
-  // ... rest of the component ...
+  return (
+    <MetricsCard
+      title="客戶總數"
+      value={error ? "載入失敗" : loading ? "載入中..." : data.count.toString()}
+      change={error ? "無法取得增長數據" : "+12.5% 較上月"}
+      changeType={error ? "negative" : "positive"}
+      Icon={MessageSquare}
+      iconColor="text-blue-500"
+    />
+  );
 };
