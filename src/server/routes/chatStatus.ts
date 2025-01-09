@@ -16,7 +16,7 @@ router.get('/chat-status/:wa_id', async (req, res) => {
         dm.is_important,
         ARRAY_AGG(DISTINCT jsonb_build_object(
           'id', cl.id,
-          'name', cl.name,
+          'name', cl.labelname,
           'color', cl.color
         )) as labels
       FROM daily_message dm

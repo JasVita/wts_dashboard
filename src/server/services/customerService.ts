@@ -6,14 +6,14 @@ export class CustomerService {
     try {
       const result = await db.query(`
        SELECT COUNT(*) as count
-       FROM customer_onboarding
+       FROM customerlist
        WHERE name IS NOT NULL
      `);
 
       const monthlyResult = await db.query(`
        SELECT COUNT(*) as new_count
-       FROM customer_onboarding
-       WHERE created_at >= date_trunc('month', CURRENT_DATE)
+       FROM customerlist
+       WHERE createdon >= date_trunc('month', CURRENT_DATE)
      `);
 
       const totalCustomers = parseInt(result.rows[0].count);
@@ -35,7 +35,7 @@ export class CustomerService {
     try {
       const result = await db.query(`
        SELECT name
-       FROM customer_onboarding
+       FROM customerlist
        WHERE name IS NOT NULL
        ORDER BY name
      `);

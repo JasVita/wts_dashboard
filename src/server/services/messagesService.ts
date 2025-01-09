@@ -14,11 +14,11 @@ export class MessagesService {
       // Insert the new message into the database
       const insertResult = await db.query(
         `
-        INSERT INTO daily_message (wa_id, name, language, input_time, weekday, input_type, input_imgid, img_description, response)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        INSERT INTO daily_message (wa_id, name, language, input_time, weekday, input_type, input_imgid, response)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
         RETURNING id, wa_id, name, language, input_time, weekday, response
       `,
-        [wa_id, name, language, input_time, weekday, "text", "null", "null", response]
+        [wa_id, name, language, input_time, weekday, "text", "null", response]
       );
 
       if (insertResult.rows.length > 0) {

@@ -10,7 +10,7 @@ export class CustomerChats {
   static async getChats(): Promise<Chat[]> {
     try {
       const result = await db.query(`
-          SELECT dm.id, dm.name, dm.input_content, dm.response, dm.input_time, dm.input_type, dm.wa_id, cl.name as label_name, cl.id as label_id, cl.color, cl.count
+          SELECT dm.id, dm.name, dm.input_content, dm.response, dm.input_time, dm.input_type, dm.wa_id, cl.labelname as label_name, cl.id as label_id, cl.color, cl.count
           FROM daily_message dm
           LEFT JOIN customer_label cl ON dm.wa_id = ANY(cl.customer_id) -- Match wa_id against TEXT[] column
           ORDER BY dm.name, dm.input_time;
@@ -83,7 +83,7 @@ export class CustomerChats {
     try {
       const result = await db.query(
         `
-          SELECT id, name, color, count
+          SELECT id, labelname, color, count
           FROM customer_label
         `
       );
@@ -111,9 +111,9 @@ export class CustomerChats {
       // Insert the new label into the database
       const insertResult = await db.query(
         `
-        INSERT INTO customer_label (name, color, count, customer_id)
+        INSERT INTO customer_label (labelname, color, count, customer_id)
         VALUES ($1, $2, $3, $4)
-        RETURNING id, name, color, count
+        RETURNING id, labelname, color, count
       `,
         [newLabel.name, newLabel.color, 1, customerIdsArray]
       );
