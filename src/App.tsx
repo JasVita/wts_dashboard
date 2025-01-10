@@ -84,13 +84,18 @@ function App() {
         }
       );
 
+      // save real CS reply to DB 
+      const now = new Date();
+      const offsetTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
+      const formattedTime = offsetTime.toISOString().split(".")[0].replace("T", " ");
       await axios.post(`${import.meta.env.VITE_API_BASE_URL}/messages/store`, {
         wa_id: selectedChat.wa_id,
         name: selectedChat.name,
         language: franc(message),
-        input_time: new Date().toISOString(),
-        weekday: new Date().toLocaleDateString('en-US', { weekday: 'long' }),
-        response: `[HUMAN] ${message}`,
+        input_time: formattedTime,
+        weekday: offsetTime.toLocaleDateString("en-US", { weekday: "long" }),
+        conv_mode: `human`,
+        response: `${message}`,
       });
 
       console.log("Message sent successfully:", whatsappResponse.data);

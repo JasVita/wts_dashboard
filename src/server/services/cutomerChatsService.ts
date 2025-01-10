@@ -10,14 +10,17 @@ export class CustomerChats {
   static async getChats(): Promise<Chat[]> {
     try {
       const result = await db.query(`
-          SELECT dm.id, dm.name, dm.input_content, dm.response, dm.input_time, dm.input_type, dm.wa_id, cl.labelname as label_name, cl.id as label_id, cl.color, cl.count
+          SELECT dm.id, dm.name, dm.input_content, dm.response, dm.input_time, dm.input_type, dm.wa_id, dm.conv_mode, 
+          cl.labelname as label_name, 
+          cl.id as label_id, 
+          cl.color, cl.count
           FROM daily_message dm
-          LEFT JOIN customer_label cl ON dm.wa_id = ANY(cl.customer_id) -- Match wa_id against TEXT[] column
+          LEFT JOIN customer_label cl ON dm.wa_id = ANY(cl.customer_id) 
           ORDER BY dm.name, dm.input_time;
         `);
-
+      
       const chats: Record<string, Chat> = {};
-
+      // console.log(result)
       result.rows.forEach((row: CustomerChatsType) => {
         const name = row.name;
         if (!chats[name]) {
@@ -60,9 +63,11 @@ export class CustomerChats {
           });
         }
         if (row.response) {
-          const isHuman = row.response.startsWith("[HUMAN]");
+          // const isHuman = row.response.startsWith("[HUMAN]");
+          const isHuman = row.conv_mode === "human";
           chats[name].messages.push({
-            content: row.response.replace("[HUMAN] ", ""),
+            // content: row.response.replace("[HUMAN] ", ""),
+            content: row.response,
             isUser: false,
             isHuman: isHuman,
             timestamp: new Date(row.input_time), // Or a slightly later timestamp
