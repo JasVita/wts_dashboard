@@ -10,11 +10,11 @@ export const fetchChats = async (): Promise<Chat[]> => {
     return data;
   } catch (error) {
     console.error("Error fetching chats:", error);
-    return []; 
+    return [];
   }
 };
 
-export const getLabels = async () => {
+export const getLabels = async (): Promise<Label[]> => {
   try {
     const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/getTotalLabels/customers`);
     if (!response.ok) {
@@ -24,6 +24,6 @@ export const getLabels = async () => {
     return data;
   } catch (error) {
     console.error("Error fetching labels:", error);
-    return []; 
+    return [];
   }
 };

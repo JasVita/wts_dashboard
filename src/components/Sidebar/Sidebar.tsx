@@ -45,8 +45,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
   };
 
   const filterChatsByLabel = (chats: Chat[]) => {
-    // console.log("labels: ", labels);
-    // console.log("selected label: ", selectedLabelId);
     if (!selectedLabelId) return chats;
     return chats.filter((chat) =>
       chat.labels?.some((label) => parseInt(label.id) === parseInt(selectedLabelId))
@@ -64,7 +62,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const filteredHumanChats = filterChatsByLabel(filterChatsBySearch(humanChats));
   const filteredAiChats = filterChatsByLabel(filterChatsBySearch(aiChats));
-  // console.log("filtered human: ", filteredHumanChats);
   const handleLabelClick = (labelId: string) => {
     setSelectedLabelId(labelId);
     setActiveTab("all"); // Reset to 'all' tab when selecting a label
@@ -140,9 +137,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
         />
       </div>
       <LabelManager
-        labels={labels || []}
+        passedlabels={labels || []}
         onLabelClick={handleLabelClick}
-        selectedLabelId={selectedLabelId}
+        passedselectedLabelId={selectedLabelId}
         isExpanded={isLabelsExpanded}
         onToggleExpand={() => setIsLabelsExpanded(!isLabelsExpanded)}
       />

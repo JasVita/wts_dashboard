@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { ArrowLeft, Plus, Star, X, Equal } from "lucide-react";
+import { ArrowLeft, Star, Equal } from "lucide-react";
 import { Chat, Label } from "../../types";
 import { ChatInput } from "./ChatInput";
 import { ChatBubble } from "./Message/ChatBubble";
@@ -10,8 +10,6 @@ import {
   DialogTrigger,
   DialogClose,
 } from "@/components/ui/dialog";
-import { CreateLabelDialog } from "../Labels/CreateLabelDialog";
-import { DeleteConfirmDialog } from "../Labels/DeleteConfirmDialog";
 import axios from "axios";
 import { getLabels } from "@/data/initialData";
 
@@ -33,9 +31,6 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [labels, setLabels] = useState<Label[] | null>(chat?.labels || []);
   const [totalLabels, setTotalLabels] = useState<Label[] | null>(chat?.labels || []);
-  const [selectedLabelId, setSelectedLabelId] = useState<string | null>(null);
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [selectedLabels, setSelectedLabels] = useState<string[]>(
     chat?.labels?.map((label) => label.id) || []
   );
@@ -84,7 +79,6 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     try {
       // Add wa_id to newly selected labels
       for (const labelId of addedLabels) {
-        // console.log("LabelID: ", labelId);
         await axios.patch(`http://localhost:5000/api/assignLabel/${labelId}`, {
           wa_id: chat.wa_id, // Add the current chat's wa_id
         });
@@ -102,41 +96,6 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
       window.location.reload();
     } catch (error) {
       console.error("Failed to update labels:", error);
-    }
-  };
-
-  const handleCreateLabel = async (name: string, color: string, wa_id: string) => {
-    try {
-      const response = await axios.post("http://localhost:5000/api/addLabel/customers", {
-        name: name,
-        color: color,
-        customerId: wa_id, // Replace 123 with the actual customer ID
-      });
-
-      const newLabel: Label = response.data;
-
-      if (labels) {
-        setLabels([...labels, newLabel]);
-      } else {
-        setLabels([newLabel]);
-      }
-    } catch (error) {
-      console.error("Failed to create a new label:", error);
-    }
-  };
-
-  const handleDeleteLabel = async (id: string) => {
-    try {
-      await axios.delete(`http://localhost:5000/api/deleteLabel/${id}`);
-
-      if (labels) {
-        setLabels(labels.filter((label) => label.id !== id));
-        if (selectedLabelId === id) {
-          setSelectedLabelId(null);
-        }
-      }
-    } catch (error) {
-      console.error(`Failed to delete label with ID ${id}:`, error);
     }
   };
 
@@ -162,9 +121,6 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
       </div>
     );
   }
-  // console.log("selected:", selectedLabels);
-  // console.log("original:", originalLabels);
-  // console.log("total:", totalLabels);
 
   return (
     <div className="flex-1 flex flex-col h-full">
@@ -263,33 +219,16 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                           >
                             {label.name}
                           </span>
-                          <button
-                            id={label.id}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setDeleteConfirmId(label.id);
-                            }}
-                            className="p-1 rounded-lg opacity-100 group-hover:opacity-100 transition-opacity ml-auto"
-                          >
-                            <X className="w-3.5 h-3.5 text-gray-500" />
-                          </button>
                         </div>
                       </div>
                     ))}
                   </div>
                 )}
                 <div className="flex gap-2 flex-col w-1/2 self-center">
-                  <button
-                    onClick={() => setShowCreateDialog(true)}
-                    className="flex items-center gap-2 rounded-lg hover:bg-gray-100 transition-colors h-6 ml-14 w-1/2"
-                  >
-                    <Plus className="w-4 h-4 ml-3 text-gray-500 text-base" />
-                    <span className="text-base font-normal text-gray-500 px-1.5">add label</span>
-                  </button>
                   <Dialog>
                     <DialogTrigger onClick={handleOpenDialog}>
                       <button className="flex items-center gap-2 rounded-lg hover:bg-gray-100 transition-colors h-6 ml-14">
-                        <Equal className="w-4 h-4 ml-3 text-gray-500 text-base"></Equal>
+                        <Equal className="w-4 h-4 text-gray-500 text-base"></Equal>
                         <span className="text-base font-normal text-gray-500 px-1.5">
                           assign label
                         </span>
@@ -353,32 +292,6 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                       </div>
                     </DialogContent>
                   </Dialog>
-
-                  {showCreateDialog && (
-                    <CreateLabelDialog
-                      onConfirm={(name: string, color: string) => {
-                        handleCreateLabel(name, color, chat.wa_id)
-                          .then(() => {
-                            setShowCreateDialog(false);
-                          })
-                          .catch((error) => {
-                            // Handle error
-                            console.error("Error creating label:", error);
-                          });
-                      }}
-                      onCancel={() => setShowCreateDialog(false)}
-                    />
-                  )}
-
-                  {deleteConfirmId && (
-                    <DeleteConfirmDialog
-                      onConfirm={() => {
-                        handleDeleteLabel(deleteConfirmId);
-                        setDeleteConfirmId(null);
-                      }}
-                      onCancel={() => setDeleteConfirmId(null)}
-                    />
-                  )}
                 </div>
               </DialogContent>
             </Dialog>
