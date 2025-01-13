@@ -15,16 +15,15 @@ router.get("/chats/customers", async (_req, res) => {
 
 router.post("/addLabel/customers", async (req, res) => {
   try {
-    const { name, color, customerId } = req.body;
+    const { name, color } = req.body;
 
-    if (!name || !color || !customerId) {
-      return res.status(400).json({ error: "Name, color, and customer ID are required." });
+    if (!name || !color) {
+      return res.status(400).json({ error: "Name, and color are required." });
     }
 
     const newLabel = {
       name: name,
       color: color,
-      customerId: customerId,
     };
 
     const createdLabel = await CustomerChats.addLable(newLabel);
