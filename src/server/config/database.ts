@@ -13,20 +13,20 @@ const dbConfig: PoolConfig = {
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   ssl: {
-    rejectUnauthorized: false,
+    rejectUnauthorized: false
   },
 };
 
 // Create a singleton pool instance
 class Database {
-  private static instance: Pool;
+  // Instead of Pool, use pg.Pool
+  private static instance: pg.Pool;
 
-  public static getInstance(): Pool {
+  public static getInstance(): pg.Pool {
     if (!Database.instance) {
       Database.instance = new Pool(dbConfig);
 
-      // Add error handling
-      Database.instance.on("error", (err) => {
+      Database.instance.on("error", (err: unknown) => {
         console.error("Unexpected error on idle client", err);
       });
     }

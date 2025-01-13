@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { PieChart } from 'lucide-react';
-import { ChartCard } from '../Common/ChartCard';
 
 interface HotWord {
   word: string;
@@ -8,7 +7,8 @@ interface HotWord {
 }
 
 export const ConversationTypeChart: React.FC = () => {
-  const [hotWords, setHotWords] = useState<HotWord[]>([]);
+  const [_hotWords, setHotWords] = useState<HotWord[]>([]);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -21,6 +21,7 @@ export const ConversationTypeChart: React.FC = () => {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
+        // 3) Now `setHotWords` exists, so this works
         setHotWords(data);
       } catch (err) {
         setError("無法載入對話資料");

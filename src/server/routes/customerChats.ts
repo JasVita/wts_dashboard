@@ -3,7 +3,7 @@ import { CustomerChats } from "../services/cutomerChatsService";
 
 const router = Router();
 
-router.get("/chats/customers", async (req, res) => {
+router.get("/chats/customers", async (_req, res) => {
   try {
     const chats = await CustomerChats.getChats();
     res.json(chats);
@@ -53,7 +53,7 @@ router.delete("/deleteLabel/:labelId", async (req, res) => {
   }
 });
 
-router.get("/getTotalLabels/customers", async (req, res) => {
+router.get("/getTotalLabels/customers", async (_req, res) => {
   try {
     // Fetch all labels using the getTotalLabels function
     const labels = await CustomerChats.getTotalLabels();

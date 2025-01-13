@@ -30,7 +30,7 @@ function App() {
       labels: [],
     },
   ]);
-  const [initialChats, setInitialChats] = useState<Chat[]>([]);
+  // const [initialChats, setInitialChats] = useState<Chat[]>([]);
   const [humanChats, setHumanChats] = useState<Chat[]>([]);
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
 
@@ -38,7 +38,7 @@ function App() {
     const fetch = async () => {
       try {
         const data = await fetchChats();
-        setInitialChats(data);
+        // setInitialChats(data);
         setHumanChats(data.filter((chat) => !chat.isAI));
       } catch (error) {
         console.error("Error fetching initial chats:", error);

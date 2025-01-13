@@ -14,6 +14,7 @@ export interface CustomerChatsType {
   input_content: string;
   response: any;
   input_time: Date;
+  conv_mode: string; 
 }
 
 export interface Message {

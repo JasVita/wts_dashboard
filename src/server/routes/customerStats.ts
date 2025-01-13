@@ -3,7 +3,7 @@ import { CustomerService } from "../services/customerService";
 
 const router = Router();
 
-router.get("/stats/customers", async (req, res) => {
+router.get("/stats/customers", async (_req, res) => {
   try {
     const customers = await CustomerService.getCustomers();
     res.json(customers);
@@ -13,7 +13,7 @@ router.get("/stats/customers", async (req, res) => {
   }
 });
 
-router.get("/stats/count", async (req, res) => {
+router.get("/stats/count", async (_req, res) => {
   try {
     const stats = await CustomerService.getStats();
     res.json({ count: stats.totalCustomers });
@@ -23,7 +23,7 @@ router.get("/stats/count", async (req, res) => {
   }
 });
 
-router.get("/stats/hotWords", async (req, res) => {
+router.get("/stats/hotWords", async (_req, res) => {
   try {
     const stats = await CustomerService.getMessages();
     res.json(stats);

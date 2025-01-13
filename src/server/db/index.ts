@@ -24,15 +24,21 @@ export const pool = new Pool({
 // Test the connection
 pool.connect((err, client, release) => {
   if (err) {
-    console.error('Error connecting to the database:', err);
+    console.error("Error connecting to the database:", err);
     return;
   }
-  client.query('SELECT NOW()', (err, result) => {
+  if (!client) {
+    console.error("No client available");
+    return;
+  }
+  client.query("SELECT NOW()", (queryErr, result) => {
     release();
-    if (err) {
-      console.error('Error executing query:', err);
+    if (queryErr) {
+      console.error("Error executing query:", queryErr);
       return;
     }
-    console.log('Connected to PostgreSQL database');
+    // Use result or remove it if not needed
+    console.log("Connected to PostgreSQL database, time:", result?.rows[0]);
   });
 });
+
