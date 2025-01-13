@@ -4,7 +4,6 @@ import { Chat, Label } from "../../types";
 interface NewLabel {
   name: string;
   color: string;
-  customerId: number;
 }
 export class CustomerChats {
   static async getChats(): Promise<Chat[]> {
@@ -18,13 +17,13 @@ export class CustomerChats {
           LEFT JOIN customer_label cl ON dm.wa_id = ANY(cl.customer_id) 
           ORDER BY dm.name, dm.input_time;
         `);
-      
+
       const chats: Record<string, Chat> = {};
-      // console.log(result)
       result.rows.forEach((row: CustomerChatsType) => {
         const name = row.name;
         if (!chats[name]) {
           chats[name] = {
+            wa_id: row.wa_id,
             id: row.id.toString(), // Use database ID
             name: name,
             avatar:
@@ -33,7 +32,6 @@ export class CustomerChats {
             lastMessage: row.input_content || "", // Handle potential null values
             messages: [],
             labels: [], // Add labels later
-            wa_id: row.wa_id,
           };
         }
         if (row.label_name) {
@@ -96,7 +94,7 @@ export class CustomerChats {
       // Map the rows to the Label interface
       return result.rows.map((row: any) => ({
         id: row.id,
-        name: row.name,
+        name: row.labelname,
         color: row.color,
         count: row.count,
       }));
@@ -109,9 +107,7 @@ export class CustomerChats {
   static async addLable(newLabel: NewLabel): Promise<Label> {
     try {
       // Ensure customerId is passed as an array
-      const customerIdsArray = Array.isArray(newLabel.customerId)
-        ? newLabel.customerId
-        : [newLabel.customerId];
+      const customerIdsArray: never[] = [];
 
       // Insert the new label into the database
       const insertResult = await db.query(
@@ -120,7 +116,7 @@ export class CustomerChats {
         VALUES ($1, $2, $3, $4)
         RETURNING id, labelname, color, count
       `,
-        [newLabel.name, newLabel.color, 1, customerIdsArray]
+        [newLabel.name, newLabel.color, 0, customerIdsArray]
       );
 
       if (insertResult.rows.length > 0) {
@@ -164,7 +160,9 @@ export class CustomerChats {
       await db.query(
         `
         UPDATE customer_label
-        SET customer_id = array_append(customer_id, $1::text)
+        SET 
+          customer_id = array_append(customer_id, $1::text),
+          count = count + 1
         WHERE id = $2 AND NOT ($1 = ANY(customer_id))
         `,
         [waId, labelId]
@@ -183,8 +181,10 @@ export class CustomerChats {
       await db.query(
         `
         UPDATE customer_label
-        SET customer_id = array_remove(customer_id, $1::text)
-        WHERE id = $2
+        SET 
+          customer_id = array_remove(customer_id, $1::text),
+          count = GREATEST(count - 1, 0) -- Ensure count doesn't go below 0
+        WHERE id = $2 AND $1 = ANY(customer_id)
         `,
         [waId, labelId]
       );
