@@ -1,5 +1,5 @@
-// import { Chat, Label } from "../types";
-import { Chat } from "../types";
+import { Chat, Label } from "../types";
+// import { Chat } from "../types";
 
 export const fetchChats = async (): Promise<Chat[]> => {
   try {
