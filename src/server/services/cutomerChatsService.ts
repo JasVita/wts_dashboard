@@ -12,15 +12,18 @@ export class CustomerChats {
           SELECT dm.id, dm.name, dm.input_content, dm.response, dm.input_time, dm.input_type, dm.wa_id, dm.conv_mode, 
           cl.labelname as label_name, 
           cl.id as label_id, 
-          cl.color, cl.count
+          cl.color, cl.count,
+          c.importance
           FROM daily_message dm
           LEFT JOIN customer_label cl ON dm.wa_id = ANY(cl.customer_id) 
+          LEFT JOIN customerlist c ON dm.wa_id = c.wa_id
           ORDER BY dm.name, dm.input_time;
         `);
 
       const chats: Record<string, Chat> = {};
       result.rows.forEach((row: CustomerChatsType) => {
         const name = row.name;
+        const isImportant = row.importance === "true";
         if (!chats[name]) {
           chats[name] = {
             wa_id: row.wa_id,
@@ -32,6 +35,7 @@ export class CustomerChats {
             lastMessage: row.input_content || "", // Handle potential null values
             messages: [],
             labels: [], // Add labels later
+            isImportant: isImportant,
           };
         }
         if (row.label_name) {
@@ -130,29 +134,6 @@ export class CustomerChats {
       throw error;
     }
   }
-
-  // static async deleteLabel(labelId: number): Promise<void> {
-  //   try {
-  //     // Delete the label from the database
-  //     const deleteResult = await db.query(
-  //       `
-  //           DELETE FROM customer_label
-  //           WHERE id = $1
-  //           RETURNING id
-  //           `,
-  //       [labelId]
-  //     );
-
-  //     if (deleteResult.rows.length > 0) {
-  //       console.log(`Label with ID ${labelId} has been successfully deleted.`);
-  //     } else {
-  //       throw new Error(`Label with ID ${labelId} not found or could not be deleted.`);
-  //     }
-  //   } catch (error) {
-  //     console.error("Error deleting the label:", error);
-  //     throw error;
-  //   }
-  // }
 
   static async deleteLabel(labelId: number): Promise<void> {
     try {
@@ -305,6 +286,30 @@ export class CustomerChats {
       // Rollback in case of any error
       await db.query("ROLLBACK");
       console.error("Error removing wa_id from label and updating customerlist:", error);
+      throw error;
+    }
+  }
+
+  static async toggleImportance(waId: string, importance: string): Promise<void> {
+    try {
+      // Update the importance column for the row with the matching wa_id
+      const updateResult = await db.query(
+        `
+        UPDATE customerlist
+        SET importance = $1
+        WHERE wa_id = $2
+        RETURNING wa_id, importance
+        `,
+        [importance, waId]
+      );
+
+      if (updateResult.rows.length > 0) {
+        console.log(`Successfully updated importance for wa_id "${waId}" to "${importance}".`);
+      } else {
+        throw new Error(`No matching row found for wa_id "${waId}".`);
+      }
+    } catch (error) {
+      console.error("Error switching importance:", error);
       throw error;
     }
   }

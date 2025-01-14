@@ -33,7 +33,7 @@ export const LabelManager: React.FC<LabelManagerProps> = ({
 
   const handleDeleteLabel = async (id: string) => {
     try {
-      await axios.delete(`http://localhost:5000/api/deleteLabel/${id}`);
+      await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/deleteLabel/${id}`);
 
       if (labels) {
         setLabels(labels.filter((label) => label.id !== id));
@@ -48,7 +48,7 @@ export const LabelManager: React.FC<LabelManagerProps> = ({
 
   const handleCreateLabel = async (name: string, color: string) => {
     try {
-      const response = await axios.post("http://localhost:5000/api/addLabel/customers", {
+      const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/addLabel/customers`, {
         name: name,
         color: color,
       });

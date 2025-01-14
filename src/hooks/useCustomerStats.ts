@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
-import { CustomerStats } from '../types';
+import { useState, useEffect } from "react";
+import { CustomerStats } from "../types";
 
 export const useCustomerStats = () => {
   const [stats, setStats] = useState<CustomerStats>({
     totalCustomers: 0,
-    monthlyGrowth: '0.0'
+    monthlyGrowth: "0.0",
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -13,14 +13,14 @@ export const useCustomerStats = () => {
     const fetchStats = async () => {
       try {
         setLoading(true);
-        const response = await fetch('http://localhost:5000/api/stats/customers');
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/stats/customers`);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
         setStats(data);
       } catch (err) {
-        setError(err instanceof Error ? err : new Error('Failed to fetch stats'));
+        setError(err instanceof Error ? err : new Error("Failed to fetch stats"));
       } finally {
         setLoading(false);
       }

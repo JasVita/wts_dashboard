@@ -3,6 +3,7 @@ export interface CustomerStats {
   monthlyGrowth: string;
 }
 export interface CustomerChatsType {
+  importance: string;
   input_type: string;
   count: number;
   color: string;
@@ -14,7 +15,7 @@ export interface CustomerChatsType {
   input_content: string;
   response: any;
   input_time: Date;
-  conv_mode: string; 
+  conv_mode: string;
 }
 
 export interface Message {

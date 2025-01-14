@@ -75,7 +75,10 @@ function App() {
       // 2) Check if there's an existing chat with this wa_id in humanChats
       setHumanChats((prevChats) => {
         console.log("Incoming WA ID =>", data.wa_id);
-        console.log("Current humanChats' WA IDs =>", prevChats.map((c) => c.wa_id));
+        console.log(
+          "Current humanChats' WA IDs =>",
+          prevChats.map((c) => c.wa_id)
+        );
 
         const existingChatIndex = prevChats.findIndex((chat) => chat.wa_id === data.wa_id);
         if (existingChatIndex >= 0) {
@@ -103,7 +106,7 @@ function App() {
           if (selectedChat?.wa_id === data.wa_id) {
             setSelectedChat(updatedChat);
           }
-    
+
           return newChats;
         } else {
           // 3) If chat not found, create a new one
@@ -246,8 +249,13 @@ function App() {
   // ---------------------------
   // Handler: Toggle "Important"
   // ---------------------------
-  const handleToggleImportant = (chat: Chat) => {
+  const handleToggleImportant = async (chat: Chat) => {
     const updatedChat = { ...chat, isImportant: !chat.isImportant };
+
+    await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/toggleImportance`, {
+      wa_id: chat.wa_id,
+      importance: updatedChat.isImportant,
+    });
 
     if (chat.isAI) {
       setAiChats((prev) => prev.map((c) => (c.id === chat.id ? updatedChat : c)));

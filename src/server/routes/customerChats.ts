@@ -105,4 +105,23 @@ router.patch("/removeLabel/:labelId", async (req, res) => {
   }
 });
 
+router.patch("/toggleImportance", async (req, res) => {
+  const { wa_id, importance } = req.body;
+
+  if (!wa_id) {
+    return res.status(400).json({ error: "wa_id is required" });
+  }
+
+  try {
+    // Call the removeLabel function
+    await CustomerChats.toggleImportance(wa_id, String(importance));
+
+    // Respond with success message
+    res.status(200).json({ message: `importance of ${wa_id} was toggled` });
+  } catch (error) {
+    console.error(`Failed to toggle importance of ${wa_id}:`, error);
+    res.status(500).json({ error: "Failed to toggle importance" });
+  }
+});
+
 export const customerChatsRouter = router;
