@@ -80,15 +80,12 @@ function App() {
         const existingChatIndex = prevChats.findIndex((chat) => chat.wa_id === data.wa_id);
         if (existingChatIndex >= 0) {
           // We found an existing chat
-          const existingChat = prevChats[existingChatIndex];
-          console.log("Found existing chat for wa_id:", existingChat.wa_id);
-
-          // Create a new messages array with the incoming message appended
-          const updatedMessages = [...existingChat.messages, incomingMessage];
+          const updatedMessages = [...prevChats[existingChatIndex].messages, incomingMessage];
+          console.log("Found existing chat for wa_id:", prevChats[existingChatIndex].wa_id);
 
           // The updated chat object
-          const updatedChat: Chat = {
-            ...existingChat,
+          const updatedChat = {
+            ...prevChats[existingChatIndex],
             lastMessage: data.message_content,
             messages: updatedMessages,
           };
@@ -97,6 +94,16 @@ function App() {
           const newChats = [...prevChats];
           newChats[existingChatIndex] = updatedChat;
           console.log("Updated existing chat =>", updatedChat);
+          // Automatically select this chat if it's not already selected
+          // if (!selectedChat || selectedChat.wa_id !== data.wa_id) {
+          //   setSelectedChat(updatedChat);
+          // }
+
+          // return newChats;
+          if (selectedChat?.wa_id === data.wa_id) {
+            setSelectedChat(updatedChat);
+          }
+    
           return newChats;
         } else {
           // 3) If chat not found, create a new one
@@ -114,6 +121,7 @@ function App() {
           };
 
           console.log("Created new chat =>", newChat);
+          // setSelectedChat(newChat);
           return [...prevChats, newChat];
         }
       });
