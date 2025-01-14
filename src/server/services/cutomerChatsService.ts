@@ -77,6 +77,9 @@ export class CustomerChats {
           });
         }
         chats[name].lastMessage = chats[name].messages[chats[name].messages.length - 1].content; //Update last message
+        // Set isAI based on conv_mode of the last message row
+        const lastConvMode = row.conv_mode; // Get the last message's conv_mode
+        chats[name].isAI = lastConvMode === "AI";
       });
 
       return Object.values(chats);

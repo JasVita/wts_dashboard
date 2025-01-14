@@ -146,6 +146,18 @@ function App() {
         console.log("fetchChats data:", data);
         // setInitialChats(data);
         setHumanChats(data.filter((chat) => !chat.isAI));
+        // Merge the default AI chat with fetched AI chats
+        setAiChats((prevAiChats) => {
+          const fetchedAiChats = data.filter((chat) => chat.isAI);
+
+          // Filter out duplicates to ensure the default chat is not added again
+          const uniqueChats = fetchedAiChats.filter(
+            (chat) => !prevAiChats.some((prevChat) => prevChat.id === chat.id)
+          );
+
+          // Combine the default chat and unique fetched chats
+          return [...prevAiChats, ...uniqueChats];
+        });
       } catch (error) {
         console.error("Error fetching initial chats:", error);
       }
