@@ -316,4 +316,39 @@ export class CustomerChats {
       throw error;
     }
   }
+
+  static async toggleConvMode(waId: string, isAI: boolean): Promise<void> {
+    try {
+      // Determine the conv_mode based on isAI
+      const convMode = isAI ? "AI" : "human";
+
+      // Update the conv_mode column for the last message row with the matching wa_id
+      const updateResult = await db.query(
+        `
+        UPDATE daily_message
+        SET conv_mode = $1
+        WHERE id = (
+          SELECT id 
+          FROM daily_message
+          WHERE wa_id = $2
+          ORDER BY input_time DESC
+          LIMIT 1
+        )
+        RETURNING wa_id, conv_mode
+        `,
+        [convMode, waId]
+      );
+
+      if (updateResult.rows.length > 0) {
+        console.log(
+          `Successfully updated conv_mode for the last message with wa_id "${waId}" to "${convMode}".`
+        );
+      } else {
+        throw new Error(`No matching row found for wa_id "${waId}".`);
+      }
+    } catch (error) {
+      console.error("Error switching conv_mode:", error);
+      throw error;
+    }
+  }
 }

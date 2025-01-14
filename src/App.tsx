@@ -168,7 +168,12 @@ function App() {
   // ---------------------------
   // Handler: Switch Chat Status (AI <-> Human)
   // ---------------------------
-  const handleStatusChange = (chat: Chat) => {
+  const handleStatusChange = async (chat: Chat) => {
+    await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/toggleConvMode`, {
+      wa_id: chat.wa_id,
+      isAI: !chat.isAI,
+    });
+
     if (chat.isAI) {
       // Move from AI to Human
       setAiChats(aiChats.filter((c) => c.id !== chat.id));

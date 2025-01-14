@@ -124,4 +124,31 @@ router.patch("/toggleImportance", async (req, res) => {
   }
 });
 
+router.patch("/toggleConvMode", async (req, res) => {
+  const { wa_id, isAI } = req.body;
+
+  if (!wa_id) {
+    return res.status(400).json({ error: "wa_id is required" });
+  }
+
+  if (typeof isAI !== "boolean") {
+    return res.status(400).json({ error: "isAI must be a boolean value" });
+  }
+
+  try {
+    // Call the toggleConvMode function
+    await CustomerChats.toggleConvMode(wa_id, isAI);
+
+    // Respond with a success message
+    res
+      .status(200)
+      .json({
+        message: `conv_mode of last message for ${wa_id} was toggled to ${isAI ? "AI" : "human"}`,
+      });
+  } catch (error) {
+    console.error(`Failed to toggle conv_mode of last message for ${wa_id}:`, error);
+    res.status(500).json({ error: "Failed to toggle conv_mode" });
+  }
+});
+
 export const customerChatsRouter = router;
