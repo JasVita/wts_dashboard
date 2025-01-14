@@ -42,6 +42,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   useEffect(() => {
     const fetchLabels = async () => {
       const labelsData = await getLabels();
+      // console.log(labelsData[1].name);
       if (labelsData) {
         setTotalLabels(labelsData);
       }
@@ -80,7 +81,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
       // Add wa_id to newly selected labels
       for (const labelId of addedLabels) {
         await axios.patch(`http://localhost:5000/api/assignLabel/${labelId}`, {
-          wa_id: chat.wa_id, // Add the current chat's wa_id
+          wa_id: String(chat.wa_id), // Add the current chat's wa_id
         });
       }
 
