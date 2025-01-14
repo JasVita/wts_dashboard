@@ -5,11 +5,17 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 
+import { createServer } from "http";
+// import { Server as SocketIOServer } from "socket.io";
+
 // Import API routes
 import { customerStatsRouter } from './routes/customerStats';
 import { customerChatsRouter } from './routes/customerChats';
 import { messagesRouter } from './routes/messages';
 import { chatStatusRouter } from './routes/chatStatus';
+
+import { pushHumanRouter } from "./routes/pushHumanRouter";
+import { initSocketIO } from "./socket";
 
 dotenv.config();
 
@@ -33,14 +39,33 @@ app.use('/api', customerChatsRouter);
 app.use('/api', messagesRouter);
 app.use('/api', chatStatusRouter);
 
-// 4) Fallback route to serve index.html for any non-API route
+// 4) Attach the new pushHumanRouter for the event-based flow
+app.use("/api", pushHumanRouter);
+
+// 5) Fallback route to serve index.html for any non-API route
 app.get("*", (_req, res) => {
   res.sendFile(path.join(distPath, "index.html"));
 });
 
-// 5) Listen on port 5000
-const PORT = process.env.PORT || 5000;
+// Create an HTTP server from `app`
+const server = createServer(app);
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+// Create a Socket.IO server
+// export const io = new SocketIOServer(server, {
+//   cors: {
+//     origin: "*", // or your domain if you like, e.g. ["https://portal.turoid.ai"]
+//   },
+// });
+
+const io = initSocketIO(server);
+
+// (Optional) Listen for new client connections
+io.on("connection", (socket) => {
+  console.log("New Socket.IO client connected:", socket.id);
+});
+
+// 6) Listen on port 5000
+const PORT = process.env.PORT || 5000;
+server.listen(PORT, () => {
+  console.log(`Server + Socket.IO running on port ${PORT}`);
 });
