@@ -9,7 +9,7 @@ export class CustomerChats {
   static async getChats(): Promise<Chat[]> {
     try {
       const result = await db.query(`
-          SELECT dm.id, dm.name, dm.input_content, dm.response, dm.input_time, dm.input_type, dm.wa_id, dm.conv_mode, 
+          SELECT dm.id, dm.name, dm.input_content, dm.response, dm.input_time, dm.input_type, dm.wa_id, dm.conv_mode, dm.input_imgid,
           cl.labelname as label_name, 
           cl.id as label_id, 
           cl.color, cl.count,
@@ -62,6 +62,7 @@ export class CustomerChats {
             isUser: true,
             timestamp: new Date(row.input_time), // Assuming input_time is a timestamp
             input_type: row.input_type,
+            input_imgid: row.input_imgid,
           });
         }
         if (row.response) {

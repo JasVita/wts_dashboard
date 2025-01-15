@@ -11,6 +11,7 @@ interface ChatBubbleProps {
   timestamp: Date;
   labels?: Label[];
   inputType: string;
+  inputImgId?: string;
 }
 
 export const ChatBubble: React.FC<ChatBubbleProps> = ({
@@ -20,6 +21,7 @@ export const ChatBubble: React.FC<ChatBubbleProps> = ({
   timestamp,
   labels,
   inputType,
+  inputImgId,
 }) => {
   const getMessageType = (): MessageType => {
     if (isUser) return "user";
@@ -32,7 +34,13 @@ export const ChatBubble: React.FC<ChatBubbleProps> = ({
   return (
     <div className={`flex ${alignment === "left" ? "justify-start" : "justify-end"} mb-8`}>
       <div className="flex flex-col max-w-[70%]">
-        <MessageBubble content={content} type={type} timestamp={timestamp} inputType={inputType} />
+        <MessageBubble
+          content={content}
+          type={type}
+          timestamp={timestamp}
+          inputType={inputType}
+          inputImgId={inputImgId}
+        />
 
         {labels && labels.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-4">

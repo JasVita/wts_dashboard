@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef } from "react";
 import { MessageContent } from "./MessageContent";
 import { MessageTime } from "./MessageTime";
 import { MessageType } from "./types";
@@ -9,6 +9,7 @@ interface MessageBubbleProps {
   type: MessageType;
   timestamp: Date;
   inputType: string;
+  inputImgId?: string;
 }
 
 export const MessageBubble: React.FC<MessageBubbleProps> = ({
@@ -16,64 +17,51 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   type,
   timestamp,
   inputType,
+  inputImgId,
 }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [transcriptionVisible, setTranscriptionVisible] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
-  const [progress, setProgress] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
+  const [totalDuration, setTotalDuration] = useState(0);
 
+  const audioRef = useRef<HTMLAudioElement>(null);
   const progressBarRef = useRef<HTMLDivElement>(null);
-  const progressInterval = useRef<number>();
-  const totalDuration = 30; // Mock total duration in seconds
 
-  const isAudio = inputType === "audio" && type === "user";
+  const isAudio = inputType === "audio" && content.startsWith("https:");
   const isImage = inputType === "image" && content.startsWith("https:");
 
-  const mockTranscription =
-    "This is a mock transcription of the audio message This is a mock transcription of the audio message This is a mock transcription of the audio message";
-
-  useEffect(() => {
-    if (isPlaying && !isDragging) {
-      progressInterval.current = window.setInterval(() => {
-        setCurrentTime((prevTime) => {
-          if (prevTime >= totalDuration) {
-            setIsPlaying(false);
-            clearInterval(progressInterval.current);
-            return 0;
-          }
-          return prevTime + 1;
-        });
-        setProgress((prevProgress) => {
-          const newProgress = (currentTime / totalDuration) * 100;
-          return newProgress >= 100 ? 0 : newProgress;
-        });
-      }, 1000);
-    } else {
-      clearInterval(progressInterval.current);
-    }
-
-    return () => {
-      clearInterval(progressInterval.current);
-    };
-  }, [isPlaying, currentTime, isDragging]);
+  const mockTranscription = inputImgId;
 
   const handlePlayPause = () => {
-    if (!isPlaying && currentTime >= totalDuration) {
-      setCurrentTime(0);
-      setProgress(0);
+    if (!audioRef.current) return;
+    if (isPlaying) {
+      audioRef.current.pause();
+    } else {
+      audioRef.current.play();
     }
     setIsPlaying(!isPlaying);
   };
 
-  const handleTranscribe = () => {
-    setTranscriptionVisible(!transcriptionVisible);
+  const handleTimeUpdate = () => {
+    if (audioRef.current) {
+      setCurrentTime(audioRef.current.currentTime);
+    }
+  };
+
+  const handleLoadedMetadata = () => {
+    if (audioRef.current) {
+      setTotalDuration(audioRef.current.duration);
+    }
   };
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, "0")}`;
+  };
+
+  const handleTranscribe = () => {
+    setTranscriptionVisible(!transcriptionVisible);
   };
 
   const calculateProgress = (clientX: number) => {
@@ -89,40 +77,11 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   const handleProgressBarClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const newProgress = calculateProgress(e.clientX);
     const newTime = (newProgress / 100) * totalDuration;
-    setProgress(newProgress);
     setCurrentTime(newTime);
-  };
-
-  const handleProgressBarMouseDown = () => {
-    setIsDragging(true);
-    setIsPlaying(false);
-  };
-
-  const handleProgressBarMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (isDragging) {
-      const newProgress = calculateProgress(e.clientX);
-      const newTime = (newProgress / 100) * totalDuration;
-      setProgress(newProgress);
-      setCurrentTime(newTime);
+    if (audioRef.current) {
+      audioRef.current.currentTime = newTime;
     }
   };
-
-  const handleProgressBarMouseUp = () => {
-    setIsDragging(false);
-  };
-
-  useEffect(() => {
-    const handleGlobalMouseUp = () => {
-      if (isDragging) {
-        setIsDragging(false);
-      }
-    };
-
-    document.addEventListener("mouseup", handleGlobalMouseUp);
-    return () => {
-      document.addEventListener("mouseup", handleGlobalMouseUp);
-    };
-  }, [isDragging]);
 
   const renderAudioMessage = () => (
     <div className="flex flex-col gap-2">
@@ -147,25 +106,15 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
           ref={progressBarRef}
           className="relative flex-1 cursor-pointer"
           onClick={handleProgressBarClick}
-          onMouseDown={handleProgressBarMouseDown}
-          onMouseMove={handleProgressBarMouseMove}
-          onMouseUp={handleProgressBarMouseUp}
         >
           <div
             className={`w-full h-1 rounded-full ${type === "user" ? "bg-gray-200" : "bg-blue-400"}`}
           />
           <div
-            className={`absolute top-0 left-0 h-1 rounded-full transition-all ${
-              isDragging ? "duration-0" : "duration-300"
-            } ${type === "user" ? "bg-green-500" : "bg-white"}`}
-            style={{ width: `${progress}%` }}
-          />
-          {/* Draggable handle */}
-          <div
-            className={`absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full ${
-              type === "user" ? "bg-green-600" : "bg-white"
-            } shadow-md transform -translate-x-1/2 hover:scale-110 transition-transform`}
-            style={{ left: `${progress}%` }}
+            className={`absolute top-0 left-0 h-1 rounded-full ${
+              type === "user" ? "bg-green-500" : "bg-white"
+            }`}
+            style={{ width: `${(currentTime / totalDuration) * 100}%` }}
           />
         </div>
 
@@ -183,6 +132,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
           <FileText className="w-4 h-4" />
         </button>
       </div>
+
       {transcriptionVisible && (
         <div
           className={`text-sm p-2 rounded-lg w-80 ${
@@ -192,6 +142,15 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
           {mockTranscription}
         </div>
       )}
+
+      {/* Actual Audio Element */}
+      <audio
+        ref={audioRef}
+        src={content} // Load the actual audio file from the content variable
+        onTimeUpdate={handleTimeUpdate}
+        onLoadedMetadata={handleLoadedMetadata}
+        onEnded={() => setIsPlaying(false)}
+      />
     </div>
   );
 

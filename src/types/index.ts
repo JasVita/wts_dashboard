@@ -20,6 +20,7 @@ export interface Chat {
     isHuman?: boolean;
     timestamp: Date;
     input_type?: string;
+    input_imgid?: string;
   }[];
   labels?: Label[];
   isImportant?: boolean;

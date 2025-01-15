@@ -325,6 +325,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
               isHuman={message.isHuman}
               timestamp={message.timestamp}
               inputType={message.input_type || "text"}
+              inputImgId={message.input_imgid}
             />
           ))}
           <div ref={messagesEndRef} />
