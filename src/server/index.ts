@@ -1,10 +1,10 @@
-import path from "path";
-import { fileURLToPath } from "url";
+// import path from "path";
+// import { fileURLToPath } from "url";
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { createServer } from "http";
-import { initSocketIO } from "./socket";
+// import { initSocketIO } from "./socket";
 
 // Import API routes
 import { customerStatsRouter } from './routes/customerStats';
@@ -12,7 +12,7 @@ import { customerChatsRouter } from './routes/customerChats';
 import { messagesRouter } from './routes/messages';
 import { chatStatusRouter } from './routes/chatStatus';
 
-import { pushHumanRouter } from "./routes/pushHumanRouter";
+// import { pushHumanRouter } from "./routes/pushHumanRouter";
 
 dotenv.config();
 
@@ -29,12 +29,12 @@ app.use('/api', messagesRouter);
 app.use('/api', chatStatusRouter);
 
 // 4) Attach the new pushHumanRouter for the event-based flow
-app.use("/api", pushHumanRouter);
+// app.use("/api", pushHumanRouter);
 
 // 5) Fallback route to serve index.html for any non-API route
-app.get("*", (_req, res) => {
-  res.sendFile(path.join(distPath, "index.html"));
-});
+// app.get("*", (_req, res) => {
+  // res.sendFile(path.join(distPath, "index.html"));
+// });
 
 // Create an HTTP server from `app`
 const server = createServer(app);
@@ -46,12 +46,12 @@ const server = createServer(app);
 //   },
 // });
 
-const io = initSocketIO(server);
+// const io = initSocketIO(server);
 
 // (Optional) Listen for new client connections
-io.on("connection", (socket) => {
-  console.log("New Socket.IO client connected:", socket.id);
-});
+// io.on("connection", (socket) => {
+//   console.log("New Socket.IO client connected:", socket.id);
+// });
 
 // 6) Listen on port 5001
 const PORT = process.env.PORT || 5001;
