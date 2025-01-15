@@ -11,11 +11,8 @@ import { franc } from "franc";
 
 function App() {
   const [activeView, setActiveView] = useState<"messages" | "analytics" | "documents">("messages");
-<<<<<<< Updated upstream
-=======
   
   // Preserved Turoid AI chat initialization
->>>>>>> Stashed changes
   const [aiChats, setAiChats] = useState<Chat[]>([
     {
       wa_id: "turoid",
@@ -35,16 +32,9 @@ function App() {
       labels: [],
     },
   ]);
-<<<<<<< Updated upstream
-  const [initialChats, setInitialChats] = useState<Chat[]>([]);
-=======
-
->>>>>>> Stashed changes
   const [humanChats, setHumanChats] = useState<Chat[]>([]);
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
 
-<<<<<<< Updated upstream
-=======
   // ---------------------------
   // Socket.IO Setup & "humanMessage" Handler
   // ---------------------------
@@ -146,15 +136,10 @@ function App() {
   }, [selectedChat]);
 
   // Preserved initial fetch
->>>>>>> Stashed changes
   useEffect(() => {
     const fetch = async () => {
       try {
         const data = await fetchChats();
-<<<<<<< Updated upstream
-        setInitialChats(data);
-        setHumanChats(data.filter((chat) => !chat.isAI));
-=======
         setHumanChats(data.filter(chat => !chat.isAI));
         setAiChats(prevAiChats => {
           const fetchedAiChats = data.filter(chat => chat.isAI);
@@ -163,7 +148,6 @@ function App() {
           );
           return [...prevAiChats, ...uniqueChats];
         });
->>>>>>> Stashed changes
       } catch (error) {
         console.error("Error fetching initial chats:", error);
       }
