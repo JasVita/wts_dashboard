@@ -8,9 +8,10 @@ export const fetchChats = async (): Promise<Chat[]> => {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     const data = await response.json();
+    // console.log("checking fetch")
     return data;
   } catch (error) {
-    console.error("Error fetching chats:", error);
+    console.error("Error fetching chats: 123", error);
     return [];
   }
 };
