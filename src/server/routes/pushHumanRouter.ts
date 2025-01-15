@@ -9,7 +9,11 @@ pushHumanRouter.post("/push-human", (req, res) => {
 
   try {
     const io = getIO();
-    console.log("[pushHumanRouter] Step 2 - Got IO instance");
+    // console.log("[pushHumanRouter] Step 2 - Got IO instance");
+    console.log("[Flow] 1. Pre-emit state:", {
+      connectedSockets: io.sockets.sockets.size,
+      rooms: io.sockets.adapter.rooms
+    });
 
     io.emit("humanMessage", {
       wa_id,
@@ -19,6 +23,10 @@ pushHumanRouter.post("/push-human", (req, res) => {
       db_time_format,
     });
     console.log("[pushHumanRouter] Step 3 - Emitted message");
+    console.log("[Flow] 2. Pre-emit state:", {
+      connectedSockets: io.sockets.sockets.size,
+      rooms: io.sockets.adapter.rooms
+    });
 
     // Check connected clients
     const connectedClients = io.sockets.sockets.size;

@@ -35,27 +35,47 @@ function App() {
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
 
   useEffect(() => {
-    const socketUrl = 'https://api.turoid.ai';
+    const socketUrl = import.meta.env.VITE_SOCKET_URL;
     console.log("[App] Connecting to socket URL:", socketUrl);
-
+  
     const newSocket = io(socketUrl, {
       transports: ["websocket", "polling"],
+      path: '/socket.io',
+      withCredentials: true,
       reconnection: true,
       reconnectionAttempts: 5,
-      path: '/socket.io',
-      withCredentials: true
+      reconnectionDelay: 1000,
+      autoConnect: true,
+      forceNew: true
     });
-
+  
+    let retryCount = 0;
+    const maxRetries = 3;
+  
+    const tryConnection = () => {
+      console.log(`[App] Connection attempt ${retryCount + 1}/${maxRetries}`);
+      newSocket.connect();
+    };
+  
+    newSocket.on("connect_error", (error) => {
+      console.error("[App] Socket connection error:", error.message);
+      if (retryCount < maxRetries) {
+        retryCount++;
+        setTimeout(tryConnection, 2000);
+      }
+    });
+  
     newSocket.on("connect", () => {
-      console.log("[App] Socket connected, ID:", newSocket.id);
+      console.log("[App] Socket connected successfully:", newSocket.id);
+      retryCount = 0;
+    });
+  
+    newSocket.on("connect", () => {
+      console.log("[App] Socket connected successfully:", newSocket.id);
     });
 
     newSocket.on("disconnect", () => {
       console.log("[App] Socket disconnected");
-    });
-
-    newSocket.on("connect_error", (error) => {
-      console.error("[App] Socket connection error:", error);
     });
 
     newSocket.on("humanMessage", (data: any) => {
@@ -109,6 +129,7 @@ function App() {
     });
 
     return () => {
+      console.log("[App] Cleaning up socket connection");
       newSocket.close();
     };
   }, []);
