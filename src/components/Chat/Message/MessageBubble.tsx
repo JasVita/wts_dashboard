@@ -44,7 +44,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
           }
           return prevTime + 1;
         });
-        setProgress((prevProgress) => {
+        setProgress(() => {
           const newProgress = (currentTime / totalDuration) * 100;
           return newProgress >= 100 ? 0 : newProgress;
         });
