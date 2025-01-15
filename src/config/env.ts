@@ -7,7 +7,7 @@ export const env = {
     port: 5432,
     name: 'turoid_test',
     user: 'DBadmin',
-    password: 'turoid123',
+    password: 'turoid123!',
     ssl: {
       rejectUnauthorized: false,
       mode: 'require'
