@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { MessageContent } from "./MessageContent";
 import { MessageTime } from "./MessageTime";
 import { MessageType } from "./types";
+import { Pause, Play, FileText } from "lucide-react"; // Add icon imports
 
 interface MessageBubbleProps {
   content: string;
@@ -16,10 +17,10 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   timestamp,
   inputType,
 }) => {
-<<<<<<< Updated upstream
-  const isAudio = inputType === "audio";
-  let isImage = inputType == "image" && content.startsWith("https:");
-=======
+  // Remove duplicate declarations
+  const isAudio = inputType === "audio" && type === "user";
+  const isImage = inputType === "image" && content.startsWith("https:");
+  
   const [isPlaying, setIsPlaying] = useState(false);
   const [transcriptionVisible, setTranscriptionVisible] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -29,9 +30,6 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   const progressBarRef = useRef<HTMLDivElement>(null);
   const progressInterval = useRef<number>();
   const totalDuration = 30; // Mock total duration in seconds
-
-  const isAudio = inputType === "audio" && type === "user";
-  const isImage = inputType === "image" && content.startsWith("https:");
 
   const mockTranscription =
     "This is a mock transcription of the audio message This is a mock transcription of the audio message This is a mock transcription of the audio message";
@@ -198,15 +196,15 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
     </div>
   );
 
->>>>>>> Stashed changes
   return (
     <div className="relative mb-10">
       {isImage ? (
-        <img src={content} className="max-w-full max-h-64 rounded-lg shadow-md" />
+        <img src={content} className="max-w-full max-h-64 rounded-lg shadow-md" alt="Message image" />
+      ) : isAudio ? (
+        renderAudioMessage()
       ) : (
         <MessageContent content={content} type={type} />
       )}
-      {isAudio && <div>audio message</div>}
       <MessageTime type={type} timestamp={timestamp} />
     </div>
   );

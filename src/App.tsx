@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { io } from "socket.io-client";
 import { NarrowSidebar } from "./components/Navigation/NarrowSidebar";
 import { Sidebar } from "./components/Sidebar/Sidebar";
 import { ChatWindow } from "./components/Chat/ChatWindow";
@@ -11,8 +12,6 @@ import { franc } from "franc";
 
 function App() {
   const [activeView, setActiveView] = useState<"messages" | "analytics" | "documents">("messages");
-  
-  // Preserved Turoid AI chat initialization
   const [aiChats, setAiChats] = useState<Chat[]>([
     {
       wa_id: "turoid",
@@ -35,26 +34,20 @@ function App() {
   const [humanChats, setHumanChats] = useState<Chat[]>([]);
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
 
-  // ---------------------------
-  // Socket.IO Setup & "humanMessage" Handler
-  // ---------------------------
   useEffect(() => {
-    // const socketUrl = import.meta.env.VITE_API_BASE_URL.replace('/api', '');
-    const socketUrl = 'https://api.turoid.ai'; // Direct URL, not from env
+    const socketUrl = 'https://api.turoid.ai';
     console.log("[App] Connecting to socket URL:", socketUrl);
-    // console.log("[App] Socket URL:", socketUrl);
 
     const newSocket = io(socketUrl, {
       transports: ["websocket", "polling"],
       reconnection: true,
       reconnectionAttempts: 5,
-      path: '/socket.io', // Add explicit path
+      path: '/socket.io',
       withCredentials: true
     });
 
-    
     newSocket.on("connect", () => {
-      console.log("[App] Step 2 - Socket connected, ID:", newSocket.id);
+      console.log("[App] Socket connected, ID:", newSocket.id);
     });
 
     newSocket.on("disconnect", () => {
@@ -65,14 +58,8 @@ function App() {
       console.error("[App] Socket connection error:", error);
     });
 
-    setSocket(newSocket);
-
-    newSocket.on("connect", () => {
-      console.log("Connected to Socket.IO server, id:", newSocket.id);
-    });
-
     newSocket.on("humanMessage", (data: any) => {
-      console.log("Received humanMessage event:", data);
+      console.log("[App] Received humanMessage:", data);
 
       const incomingMessage = {
         content: data.message_content,
@@ -83,17 +70,9 @@ function App() {
       };
 
       setHumanChats(prevChats => {
-        console.log("Incoming WA ID =>", data.wa_id);
-        console.log(
-          "Current humanChats' WA IDs =>",
-          prevChats.map((c) => c.wa_id)
-        );
-        console.log("[App] Step 3 - Received humanMessage:", data);
         const existingChatIndex = prevChats.findIndex(chat => chat.wa_id === data.wa_id);
         
         if (existingChatIndex >= 0) {
-          // Update existing chat
-          console.log("[App] Step 4 - Updating chats, current chats:", prevChats);
           const updatedChat = {
             ...prevChats[existingChatIndex],
             lastMessage: data.message_content,
@@ -120,7 +99,6 @@ function App() {
             labels: [],
           };
 
-          // Auto-select new chat if none selected
           if (!selectedChat) {
             setSelectedChat(newChat);
           }
@@ -133,7 +111,7 @@ function App() {
     return () => {
       newSocket.close();
     };
-  }, [selectedChat]);
+  }, []);
 
   // Preserved initial fetch
   useEffect(() => {
