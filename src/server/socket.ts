@@ -7,28 +7,38 @@ export const initSocketIO = (server: HTTPServer) => {
   console.log("[Socket] Initializing with config...");
   io = new SocketIOServer(server, {
     cors: {
-      origin: ["http://localhost:8080", "https://portal.turoid.ai"], // Add all frontend URLs
+      origin: ["http://localhost:8080", "https://portal.turoid.ai"],
       methods: ["GET", "POST", "OPTIONS"],
       credentials: true,
       allowedHeaders: ["my-custom-header"]
     },
-    path: '/socket.io',
-    transports: ["polling", "websocket"],
-    allowEIO3: true,
-    pingTimeout: 60000,
-    pingInterval: 25000
+    transports: ['websocket', 'polling']
   });
 
-  // Add namespace connection debug
+  // Connection lifecycle logging
   io.on("connection", (socket) => {
-    console.log("[Socket] Client connected:", {
+    console.log("[Socket] Connection successful:", {
       id: socket.id,
+      transport: socket.conn.transport.name,
       origin: socket.handshake.headers.origin,
-      transport: socket.conn.transport.name
+      time: new Date().toISOString()
     });
     
+    // Track disconnection
     socket.on("disconnect", (reason) => {
-      console.log("[Socket] Client disconnected:", { id: socket.id, reason });
+      console.log("[Socket] Client disconnected:", {
+        id: socket.id,
+        reason,
+        time: new Date().toISOString()
+      });
+    });
+
+    // Track transport changes
+    socket.conn.on("upgrade", (transport) => {
+      console.log("[Socket] Transport upgraded:", {
+        id: socket.id,
+        transport: transport.name
+      });
     });
   });
 

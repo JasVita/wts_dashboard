@@ -36,17 +36,17 @@ function App() {
 
   useEffect(() => {
     const socketUrl = import.meta.env.VITE_SOCKET_URL;
-    console.log("[App] Connecting to socket URL:", socketUrl);
+    console.log("[App] Connecting to:", socketUrl);
   
     const newSocket = io(socketUrl, {
-      transports: ["websocket", "polling"],
       path: '/socket.io',
-      withCredentials: true,
-      reconnection: true,
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
+      transports: ['websocket', 'polling'],
       autoConnect: true,
-      forceNew: true
+      reconnection: true,
+      withCredentials: true,
+      auth: {
+        token: 'client-connection'
+      }
     });
   
     let retryCount = 0;
@@ -70,10 +70,6 @@ function App() {
       retryCount = 0;
     });
   
-    newSocket.on("connect", () => {
-      console.log("[App] Socket connected successfully:", newSocket.id);
-    });
-
     newSocket.on("disconnect", () => {
       console.log("[App] Socket disconnected");
     });
