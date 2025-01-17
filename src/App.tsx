@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { io } from "socket.io-client";
 import { NarrowSidebar } from "./components/Navigation/NarrowSidebar";
 import { Sidebar } from "./components/Sidebar/Sidebar";
 import { ChatWindow } from "./components/Chat/ChatWindow";
@@ -7,76 +6,18 @@ import { AnalyticsView } from "./components/Analytics/AnalyticsView";
 import { DocumentPage } from "./components/Documents/DocumentPage";
 import { Chat } from "./types";
 import { fetchChats } from "./data/initialData";
-import axios from "axios";
+import { initSocket, cleanupSocket } from "./lib/socketHandler";
+import { sendMessageToWhatsApp, saveReplyToDB, getTuroidChat } from "./services/whatsappAPI";
 import { franc } from "franc";
 
 function App() {
   const [activeView, setActiveView] = useState<"messages" | "analytics" | "documents">("messages");
-  const [aiChats, setAiChats] = useState<Chat[]>([
-    {
-      wa_id: "turoid",
-      id: "ai-1",
-      name: "Turoid",
-      avatar: "https://images.unsplash.com/photo-1535378917042-10a22c95931a?w=400&h=400&fit=crop",
-      isAI: true,
-      lastMessage: "你好！我是 Turoid，請問有什麼可以幫到你？",
-      messages: [
-        {
-          content: "你好！我是 Turoid，請問有什麼可以幫到你？",
-          isUser: false,
-          timestamp: new Date(),
-          input_type: "text",
-        },
-      ],
-      labels: [],
-    },
-  ]);
+  const [aiChats, setAiChats] = useState<Chat[]>([getTuroidChat()]);
   const [humanChats, setHumanChats] = useState<Chat[]>([]);
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
 
   useEffect(() => {
-    const socketUrl = import.meta.env.VITE_SOCKET_URL;
-    console.log("[App] Connecting to:", socketUrl);
-  
-    const newSocket = io(socketUrl, {
-      path: '/socket.io',
-      transports: ['websocket', 'polling'],
-      autoConnect: true,
-      reconnection: true,
-      withCredentials: true,
-      auth: {
-        token: 'client-connection'
-      }
-    });
-  
-    let retryCount = 0;
-    const maxRetries = 3;
-  
-    const tryConnection = () => {
-      console.log(`[App] Connection attempt ${retryCount + 1}/${maxRetries}`);
-      newSocket.connect();
-    };
-  
-    newSocket.on("connect_error", (error) => {
-      console.error("[App] Socket connection error:", error.message);
-      if (retryCount < maxRetries) {
-        retryCount++;
-        setTimeout(tryConnection, 2000);
-      }
-    });
-  
-    newSocket.on("connect", () => {
-      console.log("[App] Socket connected successfully:", newSocket.id);
-      retryCount = 0;
-    });
-  
-    newSocket.on("disconnect", () => {
-      console.log("[App] Socket disconnected");
-    });
-
-    newSocket.on("humanMessage", (data: any) => {
-      console.log("[App] Received humanMessage:", data);
-
+    const handleHumanMessage = (data: any) => {
       const incomingMessage = {
         content: data.message_content,
         isUser: true,
@@ -85,9 +26,9 @@ function App() {
         input_type: data.message_type || "text",
       };
 
-      setHumanChats(prevChats => {
-        const existingChatIndex = prevChats.findIndex(chat => chat.wa_id === data.wa_id);
-        
+      setHumanChats((prevChats) => {
+        const existingChatIndex = prevChats.findIndex((chat) => chat.wa_id === data.wa_id);
+
         if (existingChatIndex >= 0) {
           const updatedChat = {
             ...prevChats[existingChatIndex],
@@ -122,13 +63,14 @@ function App() {
           return [...prevChats, newChat];
         }
       });
-    });
+    };
+
+    initSocket(handleHumanMessage);
 
     return () => {
-      console.log("[App] Cleaning up socket connection");
-      newSocket.close();
+      cleanupSocket();
     };
-  }, []);
+  }, [selectedChat]);
 
   // Preserved initial fetch
   useEffect(() => {
@@ -150,59 +92,18 @@ function App() {
     fetch();
   }, []);
 
-  const handleStatusChange = (chat: Chat) => {
-    if (chat.isAI) {
-      setAiChats(aiChats.filter((c) => c.id !== chat.id));
-      setHumanChats([...humanChats, { ...chat, isAI: false }]);
-    } else {
-      setHumanChats(humanChats.filter((c) => c.id !== chat.id));
-      setAiChats([...aiChats, { ...chat, isAI: true }]);
-    }
-    setSelectedChat(null);
-  };
-
   const handleSendMessage = async (message: string) => {
     if (!selectedChat) return;
 
     try {
-      const whatsappResponse = await axios.post(
-        `https://graph.facebook.com/${import.meta.env.VITE_WHATSAPP_API_VERSION}/${
-          import.meta.env.VITE_WHATSAPP_PHONE_NUMBER_ID
-        }/messages`,
-        {
-          messaging_product: "whatsapp",
-          recipient_type: "individual",
-          to: selectedChat.wa_id,
-          type: "text",
-          text: {
-            preview_url: true,
-            body: message,
-          },
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${import.meta.env.VITE_WHATSAPP_ACCESS_TOKEN}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      // Send message to WhatsApp
+      await sendMessageToWhatsApp(selectedChat.wa_id, message);
 
-      // save real CS reply to DB 
-      const now = new Date();
-      const offsetTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
-      const formattedTime = offsetTime.toISOString().split(".")[0].replace("T", " ");
-      await axios.post(`${import.meta.env.VITE_API_BASE_URL}/messages/store`, {
-        wa_id: selectedChat.wa_id,
-        name: selectedChat.name,
-        language: franc(message),
-        input_time: formattedTime,
-        weekday: offsetTime.toLocaleDateString("en-US", { weekday: "long" }),
-        conv_mode: `human`,
-        response: `${message}`,
-      });
+      // Save reply to DB
+      const language = franc(message);
+      await saveReplyToDB(selectedChat.wa_id, selectedChat.name, message, language);
 
-      console.log("Message sent successfully:", whatsappResponse.data);
-
+      // Update UI
       const newMessage = {
         content: message,
         isUser: false,
@@ -223,11 +124,7 @@ function App() {
       }
       setSelectedChat(updatedChat);
     } catch (error) {
-      if (axios.isAxiosError(error)) {
-        console.error("API responded with an error:", error.response?.data || error.message);
-      } else {
-        console.error("Unexpected error:", error);
-      }
+      console.error("[App] Failed to send message or save reply:", error);
     }
   };
 
@@ -241,6 +138,17 @@ function App() {
     }
 
     setSelectedChat(updatedChat);
+  };
+
+  const handleStatusChange = (chat: Chat) => {
+    if (chat.isAI) {
+      setAiChats(aiChats.filter((c) => c.id !== chat.id));
+      setHumanChats([...humanChats, { ...chat, isAI: false }]);
+    } else {
+      setHumanChats(humanChats.filter((c) => c.id !== chat.id));
+      setAiChats([...aiChats, { ...chat, isAI: true }]);
+    }
+    setSelectedChat(null);
   };
 
   const renderContent = () => {
@@ -263,16 +171,16 @@ function App() {
             />
           </>
         );
-      case "analytics":
-        return <AnalyticsView />;
-      case "documents":
-        return <DocumentPage />;
-      default:
-        return null;
-    }
-  };
+        case "analytics":
+          return <AnalyticsView />;
+        case "documents":
+          return <DocumentPage />;
+        default:
+          return null;
+      }
+    };  
 
-  return (
+   return (
     <div className="flex h-screen bg-gray-100">
       <NarrowSidebar activeView={activeView} onViewChange={setActiveView} />
       {renderContent()}

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { db } from '../config/database'; 
+import { db } from '../config/rm3_database'; 
 
 const pool = db; 
 

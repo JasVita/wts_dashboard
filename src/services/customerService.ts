@@ -1,4 +1,4 @@
-import { db } from './database';
+import { db } from './rm_database';
 import { CustomerStats } from '../types';
 
 export class CustomerService {

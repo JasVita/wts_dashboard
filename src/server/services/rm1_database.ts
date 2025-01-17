@@ -13,10 +13,7 @@ class Database {
       database: env.database.name,
       user: env.database.user,
       password: env.database.password,
-      ssl: {
-        rejectUnauthorized: false,
-        mode: 'require'
-      }
+      ssl: env.database.ssl, // Directly use ssl from env
     });
 
     this.pool.on('error', (err) => {
@@ -38,7 +35,10 @@ class Database {
       const result = await client.query(text, params);
       return result.rows;
     } catch (error) {
-      throw new DatabaseError(error instanceof Error ? error.message : 'Unknown database error');
+      console.error('[Database] Query error:', error);
+      throw new DatabaseError(
+        error instanceof Error ? error.message : 'Unknown database error'
+      );
     } finally {
       client.release();
     }

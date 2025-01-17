@@ -4,12 +4,15 @@ import { CustomerChats } from "../services/cutomerChatsService";
 const router = Router();
 
 router.get("/chats/customers", async (req, res) => {
+  console.log('[InitialData] Starting fetchChats');
   try {
     const chats = await CustomerChats.getChats();
+    console.log('[InitialData] Fetched chats count:', chats.length);
+    // console.log('[InitialData] First chat sample:', chats[0]);
     res.json(chats);
   } catch (error) {
-    console.error("Failed to fetch customers:", error);
-    res.status(500).json({ error: "Failed to fetch customers" });
+    console.error("[InitialData    customers:", error);
+    res.status(500).json({ error: "Failed to f          mers" });
   }
 });
 

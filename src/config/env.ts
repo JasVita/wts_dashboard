@@ -1,16 +1,17 @@
+// frontend configs
 export const env = {
   api: {
-    baseUrl: 'http://localhost:5000/api'
+    baseUrl: import.meta.env.API_BASE_URL || "http://localhost:5000/api",
   },
   database: {
-    host: 'turoidd.c988g8wysqw0.us-east-1.rds.amazonaws.com',
-    port: 5432,
-    name: 'turoid_test',
-    user: 'DBadmin',
-    password: 'turoid123!',
+    host: import.meta.env.DB_HOST,
+    port: Number(import.meta.env.DB_PORT) || 5432,
+    name: import.meta.env.DB_NAME,
+    user: import.meta.env.DB_USER,
+    password: import.meta.env.DB_PASSWORD,
     ssl: {
       rejectUnauthorized: false,
-      mode: 'require'
-    }
-  }
+      mode: "require",
+    },
+  },
 };

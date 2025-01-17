@@ -1,4 +1,4 @@
-import { db } from "../config/database";
+import { db } from "../config/rm3_database";
 import { CustomerChatsType } from "../types";
 import { Chat, Label } from "../../types";
 interface NewLabel {

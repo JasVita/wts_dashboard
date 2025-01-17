@@ -5,7 +5,7 @@ const pool = new Pool({
   port: 5432,
   database: 'turoid_test',
   user: 'DBadmin',
-  password: 'turoid123',
+  password: 'turoid123!',
   ssl: {
     rejectUnauthorized: false,
     mode: 'require'

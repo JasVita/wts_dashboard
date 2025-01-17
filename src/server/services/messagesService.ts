@@ -1,5 +1,5 @@
 import { Message } from "../types";
-import { db } from "../config/database";
+import { db } from "../config/rm3_database";
 
 export class MessagesService {
   static async storeMessage(
