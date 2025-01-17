@@ -77,32 +77,44 @@ const timelineOptions = [
   "Last Quarter",
 ];
 
-const statOptions = ["Active Users", "Lead Qualification Rate", "AI Engagement Success Rate"];
+const statOptions = ["Active Users", "Booked Meetings", "Fully AI handled chats"];
 
 export const AnalyticsView: React.FC = () => {
   const [selectedTimeline, setSelectedTimeline] = useState("Last 24 Hours");
   const [selectedStat, setSelectedStat] = useState("Active Users");
-  const [allTimelineData, setAllTimelineData] = useState<any>({});
+  const [activeUsers, setactiveUsers] = useState<any>({});
+  const [bookedMeetings, setbookedMeetings] = useState<any>({});
+  const [AIhandled, setAIhandled] = useState<any>({});
   const [barChartData, setBarChartData] = useState<ChartData<"bar">>({
     labels: [],
     datasets: [],
   });
 
   useEffect(() => {
-    const fetchAllData = async () => {
+    const fetchActiveUsers = async () => {
       try {
         const response = await axios.get(
           `${import.meta.env.VITE_API_BASE_URL}/stats/stats/activeUsers`
         );
-        setAllTimelineData(response.data);
+        setactiveUsers(response.data);
+
+        const response2 = await axios.get(
+          `${import.meta.env.VITE_API_BASE_URL}/stats/stats/bookedMeetings`
+        );
+        setbookedMeetings(response2.data);
+
+        const response3 = await axios.get(
+          `${import.meta.env.VITE_API_BASE_URL}/stats/stats/AIhandled`
+        );
+        setAIhandled(response3.data);
 
         // Initialize an array of zeros with the same length as `timeIntervals`
         const initialData = Array(labelsByTimeline[selectedTimeline].length).fill(0);
 
         // Populate the result array based on `initialData`
-        response.data[0].forEach((entry: { time_interval: string; user_count: number }) => {
+        response.data[0].forEach((entry: { time_interval: string; info: number }) => {
           const index = labelsByTimeline[selectedTimeline].indexOf(entry.time_interval); // Find the index of the time interval
-          initialData[index] = Number(entry.user_count); // Set the user count at the correct index
+          initialData[index] = Number(entry.info); // Set the user count at the correct index
         });
 
         setBarChartData({
@@ -122,50 +134,42 @@ export const AnalyticsView: React.FC = () => {
       }
     };
 
-    fetchAllData();
+    fetchActiveUsers();
   }, []);
 
   useEffect(() => {
     try {
-      let timelineData = allTimelineData[timelineOptions.indexOf(selectedTimeline)];
+      const dataSources: any = {
+        "Active Users": activeUsers,
+        "Booked Meetings": bookedMeetings,
+        "Fully AI handled chats": AIhandled,
+      };
+
+      const fieldMapping: any = {
+        "Last 24 Hours": "time_interval",
+        "Last Week": "day_of_week",
+        "Last Month": "day",
+        "Last 2 Months": "week",
+        "Last Quarter": "week",
+      };
+
+      const sourceData = dataSources[selectedStat][timelineOptions.indexOf(selectedTimeline)];
+      const field = fieldMapping[selectedTimeline];
       const today = new Date().toLocaleDateString("en-US", { weekday: "long" });
+      const newLabelsByTimeLine = reorderDays(labelsByTimeline[selectedTimeline], today);
 
-      let data = Array(labelsByTimeline[selectedTimeline].length).fill(0);
+      const data = Array(newLabelsByTimeLine.length).fill(0);
 
-      let newLabelsByTimeLine = reorderDays(labelsByTimeline[selectedTimeline], today);
-      if (selectedTimeline === "Last 24 Hours") {
-        timelineData.forEach((entry: { time_interval: string; user_count: number }) => {
-          const index = labelsByTimeline[selectedTimeline].indexOf(entry.time_interval); // Find the index of the time interval
-          data[index] = Number(entry.user_count); // Set the user count at the correct index
-        });
-      } else if (selectedTimeline === "Last Week") {
-        timelineData.forEach((entry: { day_of_week: string; user_count: number }) => {
-          const index = newLabelsByTimeLine.indexOf(entry.day_of_week); // Find the index of the time interval
-          data[index] = Number(entry.user_count); // Set the user count at the correct index
-        });
-      } else if (selectedTimeline === "Last Month") {
-        timelineData.forEach((entry: { day: string; user_count: number }) => {
-          const index = labelsByTimeline[selectedTimeline].indexOf(entry.day); // Find the index of the time interval
-          data[index] = Number(entry.user_count); // Set the user count at the correct index
-        });
-      } else if (selectedTimeline === "Last 2 Months") {
-        timelineData.forEach((entry: { week: string; user_count: number }) => {
-          const index = labelsByTimeline[selectedTimeline].indexOf(entry.week); // Find the index of the time interval
-          data[index] = Number(entry.user_count); // Set the user count at the correct index
-        });
-      } else if (selectedTimeline === "Last Quarter") {
-        timelineData.forEach((entry: { week: string; user_count: number }) => {
-          const index = labelsByTimeline[selectedTimeline].indexOf(entry.week); // Find the index of the time interval
-          data[index] = Number(entry.user_count); // Set the user count at the correct index
-        });
-      }
+      sourceData.forEach((entry: { [x: string]: string; info: any }) => {
+        const index = newLabelsByTimeLine.indexOf(entry[field]);
+        data[index] = Number(entry.info);
+      });
 
       setBarChartData({
         labels: newLabelsByTimeLine,
         datasets: [
           {
             label: `${selectedStat} Data`,
-            // data: timelineData.map((entry: any) => entry.user_count),
             data: data,
             backgroundColor: "rgba(54, 162, 235, 0.6)",
             borderColor: "rgba(54, 162, 235, 1)",
@@ -205,6 +209,20 @@ export const AnalyticsView: React.FC = () => {
         text: `${selectedStat} Over ${selectedTimeline}`,
         font: {
           size: 18,
+        },
+      },
+    },
+    scales: {
+      y: {
+        ticks: {
+          callback: function (tickValue: string | number) {
+            // Ensure the value is an integer before displaying it
+            if (typeof tickValue === "number" && Number.isInteger(tickValue)) {
+              return tickValue;
+            }
+            return null;
+          },
+          stepSize: 1, // Ensure step size is 1 to display all integers
         },
       },
     },

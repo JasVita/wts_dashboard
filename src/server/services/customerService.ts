@@ -79,7 +79,7 @@ export class CustomerService {
               WHEN EXTRACT(HOUR FROM input_time) >= 18 AND EXTRACT(HOUR FROM input_time) < 21 THEN '6 PM'
               ELSE '9 PM'
             END AS time_interval,
-            COUNT(DISTINCT name) AS user_count
+            COUNT(DISTINCT name) AS info
           FROM daily_message
           WHERE input_time >= CURRENT_DATE AND input_time < CURRENT_DATE + INTERVAL '1 day'
           GROUP BY time_interval
@@ -88,7 +88,7 @@ export class CustomerService {
         "Last Week": `
           SELECT
             TO_CHAR(input_time, 'Day') AS day_of_week,
-            COUNT(DISTINCT name) AS user_count
+            COUNT(DISTINCT name) AS info
           FROM daily_message
           WHERE input_time >= CURRENT_DATE - INTERVAL '6 days'
             AND input_time < CURRENT_DATE + INTERVAL '1 day'
@@ -98,7 +98,7 @@ export class CustomerService {
         "Last Month": `
           SELECT
             TO_CHAR(input_time, 'YYYY-MM-DD') AS day,
-            COUNT(DISTINCT name) AS user_count
+            COUNT(DISTINCT name) AS info
           FROM daily_message
           WHERE input_time >= CURRENT_DATE - INTERVAL '29 days'
             AND input_time < CURRENT_DATE + INTERVAL '1 day'
@@ -108,7 +108,7 @@ export class CustomerService {
         "Last 2 Months": `
           SELECT
             TO_CHAR(DATE_TRUNC('week', input_time), 'YYYY-MM-DD') AS week,
-            COUNT(DISTINCT name) AS user_count
+            COUNT(DISTINCT name) AS info
           FROM daily_message
           WHERE input_time >= CURRENT_DATE - INTERVAL '8 weeks'
             AND input_time < CURRENT_DATE + INTERVAL '1 day'
@@ -118,7 +118,7 @@ export class CustomerService {
         "Last Quarter": `
           SELECT
             TO_CHAR(DATE_TRUNC('week', input_time), 'YYYY-MM-DD') AS week,
-            COUNT(DISTINCT name) AS user_count
+            COUNT(DISTINCT name) AS info
           FROM daily_message
           WHERE input_time >= CURRENT_DATE - INTERVAL '12 weeks'
             AND input_time < CURRENT_DATE + INTERVAL '1 day'
@@ -136,6 +136,179 @@ export class CustomerService {
       return [result.rows, result1.rows, result2.rows, result3.rows, result4.rows];
     } catch (error) {
       console.error("Error fetching active users for all timelines:", error);
+      throw error;
+    }
+  }
+  static async getBookedMeetings(): Promise<any> {
+    try {
+      const queries = {
+        "Last 24 Hours": `
+          SELECT
+            CASE
+              WHEN EXTRACT(HOUR FROM starttime) >= 0 AND EXTRACT(HOUR FROM starttime) < 3 THEN '12 AM'
+              WHEN EXTRACT(HOUR FROM starttime) >= 3 AND EXTRACT(HOUR FROM starttime) < 6 THEN '3 AM'
+              WHEN EXTRACT(HOUR FROM starttime) >= 6 AND EXTRACT(HOUR FROM starttime) < 9 THEN '6 AM'
+              WHEN EXTRACT(HOUR FROM starttime) >= 9 AND EXTRACT(HOUR FROM starttime) < 12 THEN '9 AM'
+              WHEN EXTRACT(HOUR FROM starttime) >= 12 AND EXTRACT(HOUR FROM starttime) < 15 THEN '12 PM'
+              WHEN EXTRACT(HOUR FROM starttime) >= 15 AND EXTRACT(HOUR FROM starttime) < 18 THEN '3 PM'
+              WHEN EXTRACT(HOUR FROM starttime) >= 18 AND EXTRACT(HOUR FROM starttime) < 21 THEN '6 PM'
+              ELSE '9 PM'
+            END AS time_interval,
+            COUNT(*) AS info
+          FROM google_meets
+          WHERE status = 'confirmed'
+            AND starttime >= CURRENT_DATE AND starttime < CURRENT_DATE + INTERVAL '1 day'
+          GROUP BY time_interval
+          ORDER BY time_interval;         
+        `,
+        "Last Week": `
+          SELECT
+            TO_CHAR(starttime, 'Day') AS day_of_week,
+            COUNT(*) AS info
+          FROM google_meets
+          WHERE status = 'confirmed'
+            AND starttime >= NOW() - INTERVAL '6 days'
+          GROUP BY day_of_week
+          ORDER BY MIN(starttime);      
+        `,
+        "Last Month": `
+          SELECT
+            TO_CHAR(starttime, 'YYYY-MM-DD') AS day,
+            COUNT(*) AS info
+          FROM google_meets
+          WHERE status = 'confirmed'
+            AND starttime >= CURRENT_DATE - INTERVAL '29 days'
+            AND starttime < CURRENT_DATE + INTERVAL '1 day'
+          GROUP BY day
+          ORDER BY day;      
+        `,
+        "Last 2 Months": `
+          SELECT
+            TO_CHAR(DATE_TRUNC('week', starttime), 'YYYY-MM-DD') AS week,
+            COUNT(*) AS info
+          FROM google_meets
+          WHERE status = 'confirmed'
+            AND starttime >= NOW() - INTERVAL '2 months'
+          GROUP BY week
+          ORDER BY week;      
+        `,
+        "Last Quarter": `
+          SELECT
+            TO_CHAR(DATE_TRUNC('week', starttime), 'YYYY-MM-DD') AS week,
+            COUNT(*) AS info
+          FROM google_meets
+          WHERE status = 'confirmed'
+            AND starttime >= NOW() - INTERVAL '3 months'
+          GROUP BY week
+          ORDER BY week;
+        `,
+      };
+
+      const result = await db.query(queries["Last 24 Hours"]);
+      const result1 = await db.query(queries["Last Week"]);
+      const result2 = await db.query(queries["Last Month"]);
+      const result3 = await db.query(queries["Last 2 Months"]);
+      const result4 = await db.query(queries["Last Quarter"]);
+
+      return [result.rows, result1.rows, result2.rows, result3.rows, result4.rows];
+    } catch (error) {
+      console.error("Error fetching booked meetings:", error);
+      throw error;
+    }
+  }
+  static async getAIhandled(): Promise<any> {
+    try {
+      const queries = {
+        "Last 24 Hours": `
+          SELECT
+            CASE
+              WHEN EXTRACT(HOUR FROM input_time) >= 0 AND EXTRACT(HOUR FROM input_time) < 3 THEN '12 AM'
+              WHEN EXTRACT(HOUR FROM input_time) >= 3 AND EXTRACT(HOUR FROM input_time) < 6 THEN '3 AM'
+              WHEN EXTRACT(HOUR FROM input_time) >= 6 AND EXTRACT(HOUR FROM input_time) < 9 THEN '6 AM'
+              WHEN EXTRACT(HOUR FROM input_time) >= 9 AND EXTRACT(HOUR FROM input_time) < 12 THEN '9 AM'
+              WHEN EXTRACT(HOUR FROM input_time) >= 12 AND EXTRACT(HOUR FROM input_time) < 15 THEN '12 PM'
+              WHEN EXTRACT(HOUR FROM input_time) >= 15 AND EXTRACT(HOUR FROM input_time) < 18 THEN '3 PM'
+              WHEN EXTRACT(HOUR FROM input_time) >= 18 AND EXTRACT(HOUR FROM input_time) < 21 THEN '6 PM'
+              ELSE '9 PM'
+            END AS time_interval,
+            COUNT(DISTINCT name) AS info
+          FROM daily_message dm
+          WHERE input_time >= (CURRENT_DATE - INTERVAL '1 day') AND input_time < CURRENT_DATE
+            AND name NOT IN (
+              SELECT name
+              FROM daily_message
+              WHERE conv_mode != 'AI'
+            )
+          GROUP BY time_interval
+          ORDER BY time_interval;         
+        `,
+        "Last Week": `
+          SELECT
+            TO_CHAR(input_time, 'Day') AS day_of_week,
+            COUNT(DISTINCT name) AS info
+          FROM daily_message dm
+          WHERE input_time >= (CURRENT_DATE - INTERVAL '6 days') AND input_time < CURRENT_DATE
+            AND name NOT IN (
+              SELECT name
+              FROM daily_message
+              WHERE conv_mode != 'AI'
+            )
+          GROUP BY day_of_week
+          ORDER BY MIN(input_time);     
+        `,
+        "Last Month": `
+          SELECT
+            TO_CHAR(input_time, 'YYYY-MM-DD') AS day,
+            COUNT(DISTINCT name) AS info
+          FROM daily_message dm
+          WHERE input_time >= (CURRENT_DATE - INTERVAL '1 month') AND input_time < CURRENT_DATE
+            AND name NOT IN (
+              SELECT name
+              FROM daily_message
+              WHERE conv_mode != 'AI'
+            )
+          GROUP BY day
+          ORDER BY day;
+        `,
+        "Last 2 Months": `
+          SELECT
+            TO_CHAR(DATE_TRUNC('week', input_time), 'YYYY-MM-DD') AS week,
+            COUNT(DISTINCT name) AS info
+          FROM daily_message dm
+          WHERE input_time >= (CURRENT_DATE - INTERVAL '2 months') AND input_time < CURRENT_DATE
+            AND name NOT IN (
+              SELECT name
+              FROM daily_message
+              WHERE conv_mode != 'AI'
+            )
+          GROUP BY week
+          ORDER BY week;
+        `,
+        "Last Quarter": `
+          SELECT
+            TO_CHAR(DATE_TRUNC('week', input_time), 'YYYY-MM-DD') AS week,
+            COUNT(DISTINCT name) AS info
+          FROM daily_message dm
+          WHERE input_time >= (CURRENT_DATE - INTERVAL '3 months') AND input_time < CURRENT_DATE
+            AND name NOT IN (
+              SELECT name
+              FROM daily_message
+              WHERE conv_mode != 'AI'
+            )
+          GROUP BY week
+          ORDER BY week;
+        `,
+      };
+
+      const result = await db.query(queries["Last 24 Hours"]);
+      const result1 = await db.query(queries["Last Week"]);
+      const result2 = await db.query(queries["Last Month"]);
+      const result3 = await db.query(queries["Last 2 Months"]);
+      const result4 = await db.query(queries["Last Quarter"]);
+
+      return [result.rows, result1.rows, result2.rows, result3.rows, result4.rows];
+    } catch (error) {
+      console.error("Error fetching AI handled:", error);
       throw error;
     }
   }

@@ -44,4 +44,26 @@ router.get("/stats/activeUsers", async (_req, res) => {
   }
 });
 
+router.get("/stats/bookedMeetings", async (_req, res) => {
+  try {
+    const stats = await CustomerService.getBookedMeetings();
+    res.json(stats);
+    console.log("booked meetings retrieved good");
+  } catch (error) {
+    console.error("Failed to fetch booked meetings:", error);
+    res.status(500).json({ error: "Failed to fetch booked meetings" });
+  }
+});
+
+router.get("/stats/AIhandled", async (_req, res) => {
+  try {
+    const stats = await CustomerService.getAIhandled();
+    res.json(stats);
+    console.log("AI handled retrieved good");
+  } catch (error) {
+    console.error("Failed to fetch AI handled:", error);
+    res.status(500).json({ error: "Failed to fetch AI handled" });
+  }
+});
+
 export const customerStatsRouter = router;
