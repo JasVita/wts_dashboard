@@ -2,10 +2,11 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { db } from '@/lib/db';
 import { MessageSquare, LayoutDashboard, Sparkles, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000/api';
 
 export default function PortalLayout({
   children,
@@ -16,8 +17,8 @@ export default function PortalLayout({
 
   useEffect(() => {
     const checkAuth = async () => {
-      const user = await db.getCurrentUser();
-      if (!user) {
+      const currentUser = localStorage.getItem('currentUser');
+      if (!currentUser) {
         router.push('/login');
       }
     };
@@ -26,7 +27,7 @@ export default function PortalLayout({
   }, [router]);
 
   const handleSignOut = async () => {
-    await db.signOut();
+    localStorage.removeItem('currentUser');
     router.push('/login');
   };
 
