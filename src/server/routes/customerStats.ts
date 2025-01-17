@@ -33,4 +33,15 @@ router.get("/stats/hotWords", async (_req, res) => {
   }
 });
 
+router.get("/stats/activeUsers", async (_req, res) => {
+  try {
+    const stats = await CustomerService.getActiveUsers();
+    res.json(stats);
+    console.log("active users fetched retrieved good");
+  } catch (error) {
+    console.error("Failed to fetch active users:", error);
+    res.status(500).json({ error: "Failed to fetch active users" });
+  }
+});
+
 export const customerStatsRouter = router;

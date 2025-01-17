@@ -143,7 +143,6 @@ function App() {
     const fetch = async () => {
       try {
         const data = await fetchChats();
-        console.log("fetchChats data:", data);
         // setInitialChats(data);
         setHumanChats(data.filter((chat) => !chat.isAI));
         // Merge the default AI chat with fetched AI chats
@@ -316,7 +315,7 @@ function App() {
   };
 
   return (
-    <div className="flex h-full bg-gray-100">
+    <div className={`flex ${activeView === "messages" ? "h-screen" : "h-full"} bg-gray-100`}>
       <NarrowSidebar activeView={activeView} onViewChange={setActiveView} />
       {renderContent()}
     </div>

@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Bar, Pie } from "react-chartjs-2";
 import {
   Chart as ChartJS,
+  ChartData,
   CategoryScale,
   LinearScale,
   BarElement,
@@ -18,31 +19,56 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import axios from "axios";
 
 // Register Chart.js components
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, ArcElement, Tooltip, Legend);
 
-// Ensure `dataByTimeline` and `labelsByTimeline` have keys matching `TimelineKey`
-const dataByTimeline: any = {
-  "Last 24 Hours": [5, 10, 15, 20, 25, 30, 35],
-  "Last Week": [12, 19, 3, 5, 2, 3, 9],
-  "Last Month": [
-    40, 60, 30, 80, 20, 50, 70, 60, 30, 80, 20, 50, 70, 60, 30, 80, 20, 50, 70, 60, 30, 80, 20, 50,
-    70, 60, 30, 80, 20, 50,
-  ],
-  "Last 2 Months": [100, 200, 150, 120, 250, 300, 220, 69],
-  "Last Quarter": [300, 400, 500, 350, 450, 550, 600, 500, 350, 450, 550, 600],
+const reorderDays = (days: string[], startDay: string) => {
+  const startIndex = days.findIndex((day) => day.trim() === startDay.trim());
+  return [...days.slice(startIndex + 1), ...days.slice(0, startIndex + 1)];
 };
+
+const getWeeklyLabels = (weeksBack: number) => {
+  const labels = [];
+  const today = new Date();
+
+  // Get the current week's start date
+  let currentWeekStart = new Date(today);
+  const dayOfWeek = today.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+  const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Calculate days to subtract to reach Monday
+  currentWeekStart.setDate(today.getDate() - daysToMonday);
+
+  for (let i = 0; i < weeksBack; i++) {
+    labels.unshift(currentWeekStart.toISOString().split("T")[0]); // Add the week start date to labels in YYYY-MM-DD format
+    currentWeekStart.setDate(currentWeekStart.getDate() - 7); // Move back 1 week
+  }
+
+  return labels;
+};
+
+const today = new Date();
 
 const labelsByTimeline: any = {
-  "Last 24 Hours": ["12 AM", "4 AM", "8 AM", "12 PM", "4 PM", "8 PM", "12 AM"],
-  "Last Week": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-  "Last Month": Array.from({ length: 30 }, (_, i) => `Day ${i + 1}`),
-  "Last 2 Months": Array.from({ length: 8 }, (_, i) => `Week ${i + 1}`),
-  "Last Quarter": Array.from({ length: 12 }, (_, i) => `Week ${i + 1}`),
+  "Last 24 Hours": ["12 AM", "3 AM", "6 AM", "9 AM", "12 PM", "3 PM", "6 PM", "9 PM"],
+  "Last Week": [
+    "Monday   ",
+    "Tuesday  ",
+    "Wednesday",
+    "Thursday ",
+    "Friday   ",
+    "Saturday ",
+    "Sunday   ",
+  ],
+  "Last Month": Array.from({ length: 30 }, (_, i) => {
+    const date = new Date(today);
+    date.setDate(today.getDate() - (29 - i));
+    return date.toISOString().split("T")[0];
+  }),
+  "Last 2 Months": getWeeklyLabels(8),
+  "Last Quarter": getWeeklyLabels(12),
 };
 
-const statOptions = ["Active Users", "Lead Qualification Rate", "AI Engagement Success Rate"];
 const timelineOptions = [
   "Last 24 Hours",
   "Last Week",
@@ -51,9 +77,106 @@ const timelineOptions = [
   "Last Quarter",
 ];
 
+const statOptions = ["Active Users", "Lead Qualification Rate", "AI Engagement Success Rate"];
+
 export const AnalyticsView: React.FC = () => {
   const [selectedTimeline, setSelectedTimeline] = useState("Last 24 Hours");
   const [selectedStat, setSelectedStat] = useState("Active Users");
+  const [allTimelineData, setAllTimelineData] = useState<any>({});
+  const [barChartData, setBarChartData] = useState<ChartData<"bar">>({
+    labels: [],
+    datasets: [],
+  });
+
+  useEffect(() => {
+    const fetchAllData = async () => {
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_API_BASE_URL}/stats/stats/activeUsers`
+        );
+        setAllTimelineData(response.data);
+
+        // Initialize an array of zeros with the same length as `timeIntervals`
+        const initialData = Array(labelsByTimeline[selectedTimeline].length).fill(0);
+
+        // Populate the result array based on `initialData`
+        response.data[0].forEach((entry: { time_interval: string; user_count: number }) => {
+          const index = labelsByTimeline[selectedTimeline].indexOf(entry.time_interval); // Find the index of the time interval
+          initialData[index] = Number(entry.user_count); // Set the user count at the correct index
+        });
+
+        setBarChartData({
+          labels: labelsByTimeline[selectedTimeline],
+          datasets: [
+            {
+              label: `${selectedStat} Data`,
+              data: initialData,
+              backgroundColor: "rgba(54, 162, 235, 0.6)",
+              borderColor: "rgba(54, 162, 235, 1)",
+              borderWidth: 1,
+            },
+          ],
+        });
+      } catch (error) {
+        console.error("Error fetching active users:", error);
+      }
+    };
+
+    fetchAllData();
+  }, []);
+
+  useEffect(() => {
+    try {
+      let timelineData = allTimelineData[timelineOptions.indexOf(selectedTimeline)];
+      const today = new Date().toLocaleDateString("en-US", { weekday: "long" });
+
+      let data = Array(labelsByTimeline[selectedTimeline].length).fill(0);
+
+      let newLabelsByTimeLine = reorderDays(labelsByTimeline[selectedTimeline], today);
+      if (selectedTimeline === "Last 24 Hours") {
+        timelineData.forEach((entry: { time_interval: string; user_count: number }) => {
+          const index = labelsByTimeline[selectedTimeline].indexOf(entry.time_interval); // Find the index of the time interval
+          data[index] = Number(entry.user_count); // Set the user count at the correct index
+        });
+      } else if (selectedTimeline === "Last Week") {
+        timelineData.forEach((entry: { day_of_week: string; user_count: number }) => {
+          const index = newLabelsByTimeLine.indexOf(entry.day_of_week); // Find the index of the time interval
+          data[index] = Number(entry.user_count); // Set the user count at the correct index
+        });
+      } else if (selectedTimeline === "Last Month") {
+        timelineData.forEach((entry: { day: string; user_count: number }) => {
+          const index = labelsByTimeline[selectedTimeline].indexOf(entry.day); // Find the index of the time interval
+          data[index] = Number(entry.user_count); // Set the user count at the correct index
+        });
+      } else if (selectedTimeline === "Last 2 Months") {
+        timelineData.forEach((entry: { week: string; user_count: number }) => {
+          const index = labelsByTimeline[selectedTimeline].indexOf(entry.week); // Find the index of the time interval
+          data[index] = Number(entry.user_count); // Set the user count at the correct index
+        });
+      } else if (selectedTimeline === "Last Quarter") {
+        timelineData.forEach((entry: { week: string; user_count: number }) => {
+          const index = labelsByTimeline[selectedTimeline].indexOf(entry.week); // Find the index of the time interval
+          data[index] = Number(entry.user_count); // Set the user count at the correct index
+        });
+      }
+
+      setBarChartData({
+        labels: newLabelsByTimeLine,
+        datasets: [
+          {
+            label: `${selectedStat} Data`,
+            // data: timelineData.map((entry: any) => entry.user_count),
+            data: data,
+            backgroundColor: "rgba(54, 162, 235, 0.6)",
+            borderColor: "rgba(54, 162, 235, 1)",
+            borderWidth: 1,
+          },
+        ],
+      });
+    } catch (error) {
+      console.error("Error updating timeline for active users:", error);
+    }
+  }, [selectedTimeline, selectedStat]);
 
   const regionData = [
     { region: "North America (+1)", percentage: 35 },
@@ -85,20 +208,6 @@ export const AnalyticsView: React.FC = () => {
         },
       },
     },
-  };
-
-  // Bar chart configuration
-  const barChartData = {
-    labels: labelsByTimeline[selectedTimeline],
-    datasets: [
-      {
-        label: `${selectedStat} Data`,
-        data: dataByTimeline[selectedTimeline],
-        backgroundColor: "rgba(54, 162, 235, 0.6)",
-        borderColor: "rgba(54, 162, 235, 1)",
-        borderWidth: 1,
-      },
-    ],
   };
 
   // Pie Chart Data
@@ -142,7 +251,7 @@ export const AnalyticsView: React.FC = () => {
         <h1 className="text-2xl font-semibold">數據分析</h1>
         <Select onValueChange={setSelectedTimeline}>
           <SelectTrigger className="w-[180px] focus:ring-blue-500 bg-white">
-            <SelectValue placeholder="Select timeline" />
+            <SelectValue placeholder={selectedTimeline} />
           </SelectTrigger>
           <SelectContent>
             {timelineOptions.map((label) => (

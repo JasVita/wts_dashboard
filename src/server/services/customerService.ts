@@ -19,7 +19,8 @@ export class CustomerService {
       const totalCustomers = parseInt(result.rows[0].count);
       const newCustomers = parseInt(monthlyResult.rows[0].new_count || "0");
 
-      const monthlyGrowth = newCustomers > 0 ? ((newCustomers / totalCustomers) * 100).toFixed(1) : "0.0";
+      const monthlyGrowth =
+        newCustomers > 0 ? ((newCustomers / totalCustomers) * 100).toFixed(1) : "0.0";
 
       return {
         totalCustomers,
@@ -59,6 +60,82 @@ export class CustomerService {
       return hotWords;
     } catch (error) {
       console.error("Error getting hotWords:", error);
+      throw error;
+    }
+  }
+
+  static async getActiveUsers(): Promise<any> {
+    try {
+      const queries = {
+        "Last 24 Hours": `
+          SELECT
+            CASE
+              WHEN EXTRACT(HOUR FROM input_time) >= 0 AND EXTRACT(HOUR FROM input_time) < 3 THEN '12 AM'
+              WHEN EXTRACT(HOUR FROM input_time) >= 3 AND EXTRACT(HOUR FROM input_time) < 6 THEN '3 AM'
+              WHEN EXTRACT(HOUR FROM input_time) >= 6 AND EXTRACT(HOUR FROM input_time) < 9 THEN '6 AM'
+              WHEN EXTRACT(HOUR FROM input_time) >= 9 AND EXTRACT(HOUR FROM input_time) < 12 THEN '9 AM'
+              WHEN EXTRACT(HOUR FROM input_time) >= 12 AND EXTRACT(HOUR FROM input_time) < 15 THEN '12 PM'
+              WHEN EXTRACT(HOUR FROM input_time) >= 15 AND EXTRACT(HOUR FROM input_time) < 18 THEN '3 PM'
+              WHEN EXTRACT(HOUR FROM input_time) >= 18 AND EXTRACT(HOUR FROM input_time) < 21 THEN '6 PM'
+              ELSE '9 PM'
+            END AS time_interval,
+            COUNT(DISTINCT name) AS user_count
+          FROM daily_message
+          WHERE input_time >= CURRENT_DATE AND input_time < CURRENT_DATE + INTERVAL '1 day'
+          GROUP BY time_interval
+          ORDER BY MIN(input_time); -- Order by the earliest time in each interval
+        `,
+        "Last Week": `
+          SELECT
+            TO_CHAR(input_time, 'Day') AS day_of_week,
+            COUNT(DISTINCT name) AS user_count
+          FROM daily_message
+          WHERE input_time >= CURRENT_DATE - INTERVAL '6 days'
+            AND input_time < CURRENT_DATE + INTERVAL '1 day'
+          GROUP BY day_of_week
+          ORDER BY MIN(input_time); -- Order by the earliest time in each interval
+        `,
+        "Last Month": `
+          SELECT
+            TO_CHAR(input_time, 'YYYY-MM-DD') AS day,
+            COUNT(DISTINCT name) AS user_count
+          FROM daily_message
+          WHERE input_time >= CURRENT_DATE - INTERVAL '29 days'
+            AND input_time < CURRENT_DATE + INTERVAL '1 day'
+          GROUP BY day
+          ORDER BY MIN(input_time); -- Order by the earliest time in each day
+        `,
+        "Last 2 Months": `
+          SELECT
+            TO_CHAR(DATE_TRUNC('week', input_time), 'YYYY-MM-DD') AS week,
+            COUNT(DISTINCT name) AS user_count
+          FROM daily_message
+          WHERE input_time >= CURRENT_DATE - INTERVAL '8 weeks'
+            AND input_time < CURRENT_DATE + INTERVAL '1 day'
+          GROUP BY week
+          ORDER BY MIN(input_time); -- Order by the earliest time in each week
+        `,
+        "Last Quarter": `
+          SELECT
+            TO_CHAR(DATE_TRUNC('week', input_time), 'YYYY-MM-DD') AS week,
+            COUNT(DISTINCT name) AS user_count
+          FROM daily_message
+          WHERE input_time >= CURRENT_DATE - INTERVAL '12 weeks'
+            AND input_time < CURRENT_DATE + INTERVAL '1 day'
+          GROUP BY week
+          ORDER BY MIN(input_time); -- Order by the earliest time in each week
+        `,
+      };
+
+      const result = await db.query(queries["Last 24 Hours"]);
+      const result1 = await db.query(queries["Last Week"]);
+      const result2 = await db.query(queries["Last Month"]);
+      const result3 = await db.query(queries["Last 2 Months"]);
+      const result4 = await db.query(queries["Last Quarter"]);
+
+      return [result.rows, result1.rows, result2.rows, result3.rows, result4.rows];
+    } catch (error) {
+      console.error("Error fetching active users for all timelines:", error);
       throw error;
     }
   }
