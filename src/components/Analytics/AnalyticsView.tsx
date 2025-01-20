@@ -85,7 +85,12 @@ export const AnalyticsView: React.FC = () => {
   const [activeUsers, setactiveUsers] = useState<any>({});
   const [bookedMeetings, setbookedMeetings] = useState<any>({});
   const [AIhandled, setAIhandled] = useState<any>({});
+  const [WAIDS, setWAIDS] = useState<any>({});
   const [barChartData, setBarChartData] = useState<ChartData<"bar">>({
+    labels: [],
+    datasets: [],
+  });
+  const [pieChartData, setpieChartData] = useState<ChartData<"pie">>({
     labels: [],
     datasets: [],
   });
@@ -108,6 +113,9 @@ export const AnalyticsView: React.FC = () => {
         );
         setAIhandled(response3.data);
 
+        const response4 = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/stats/stats/WAIDS`);
+        setWAIDS(response4.data);
+
         // Initialize an array of zeros with the same length as `timeIntervals`
         const initialData = Array(labelsByTimeline[selectedTimeline].length).fill(0);
 
@@ -116,6 +124,9 @@ export const AnalyticsView: React.FC = () => {
           const index = labelsByTimeline[selectedTimeline].indexOf(entry.time_interval); // Find the index of the time interval
           initialData[index] = Number(entry.info); // Set the user count at the correct index
         });
+
+        // Initialize Pie Chart Data for "Last 24 Hours"
+        const initialTimelineData = response4.data[0]; // Assuming index 0 is "Last 24 Hours"
 
         setBarChartData({
           labels: labelsByTimeline[selectedTimeline],
@@ -126,6 +137,15 @@ export const AnalyticsView: React.FC = () => {
               backgroundColor: "rgba(54, 162, 235, 0.6)",
               borderColor: "rgba(54, 162, 235, 1)",
               borderWidth: 1,
+            },
+          ],
+        });
+
+        setpieChartData({
+          labels: initialTimelineData.map((item: { region: any }) => item.region),
+          datasets: [
+            {
+              data: initialTimelineData.map((item: { percentage: any }) => item.percentage),
             },
           ],
         });
@@ -182,13 +202,26 @@ export const AnalyticsView: React.FC = () => {
     }
   }, [selectedTimeline, selectedStat]);
 
-  const regionData = [
-    { region: "North America (+1)", percentage: 35 },
-    { region: "Europe (+44)", percentage: 25 },
-    { region: "Asia (+81)", percentage: 20 },
-    { region: "Australia (+61)", percentage: 15 },
-    { region: "Others", percentage: 5 },
-  ];
+  useEffect(() => {
+    try {
+      const data = WAIDS[timelineOptions.indexOf(selectedTimeline)];
+
+      setpieChartData({
+        labels: data.map((item: any) => item.region),
+        datasets: [
+          {
+            label: `${selectedStat} Data`,
+            data: data.map((item: any) => item.amount),
+            backgroundColor: ["#FF6384", "#FFCE56", "4BC0C0"],
+            // borderColor: "rgba(54, 162, 235, 1)",
+            borderWidth: 1,
+          },
+        ],
+      });
+    } catch (error) {
+      console.error("Error updating timeline for active users:", error);
+    }
+  }, [selectedTimeline]);
 
   const initialMessagesData = [
     { message: "Hi", count: 1200 },
@@ -228,25 +261,6 @@ export const AnalyticsView: React.FC = () => {
     },
   };
 
-  // Pie Chart Data
-  const pieChartData = {
-    labels: regionData.map((item) => item.region), // Regions as labels
-    datasets: [
-      {
-        data: regionData.map((item) => item.percentage), // Percentages as data
-        backgroundColor: [
-          "#FF6384", // North America
-          "#36A2EB", // Europe
-          "#FFCE56", // Asia
-          "#4BC0C0", // Australia
-          "#9966FF", // Others
-        ],
-        hoverBackgroundColor: ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF"],
-      },
-    ],
-  };
-
-  // Pie Chart Options
   const pieChartOptions = {
     responsive: true,
     plugins: {

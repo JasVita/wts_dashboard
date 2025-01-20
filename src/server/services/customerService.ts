@@ -1,6 +1,10 @@
 import { db } from "../config/database";
 import { CustomerStats } from "../types";
 
+import parsePhone from "../../../local_modules/phoneparser/index.js";
+
+console.log(parsePhone("77718997711"));
+
 export class CustomerService {
   static async getStats(): Promise<CustomerStats> {
     try {
@@ -309,6 +313,98 @@ export class CustomerService {
       return [result.rows, result1.rows, result2.rows, result3.rows, result4.rows];
     } catch (error) {
       console.error("Error fetching AI handled:", error);
+      throw error;
+    }
+  }
+
+  static async getWAIDS(): Promise<any> {
+    try {
+      const queries = {
+        "Last 24 Hours": `
+          SELECT
+            ARRAY_AGG(DISTINCT wa_id) AS wa_ids
+          FROM daily_message
+          WHERE input_time >= CURRENT_DATE AND input_time < CURRENT_DATE + INTERVAL '1 day'            
+        `,
+        "Last Week": `
+          SELECT
+            ARRAY_AGG(DISTINCT wa_id) AS wa_ids
+          FROM daily_message
+          WHERE input_time >= CURRENT_DATE - INTERVAL '6 days' AND input_time < CURRENT_DATE + INTERVAL '1 day';
+        `,
+        "Last Month": `
+          SELECT
+            ARRAY_AGG(DISTINCT wa_id) AS wa_ids
+          FROM daily_message
+          WHERE input_time >= CURRENT_DATE - INTERVAL '29 days' AND input_time < CURRENT_DATE + INTERVAL '1 day';
+        `,
+        "Last 2 Months": `
+          SELECT
+            ARRAY_AGG(DISTINCT wa_id) AS wa_ids
+          FROM daily_message
+          WHERE input_time >= CURRENT_DATE - INTERVAL '8 weeks' AND input_time < CURRENT_DATE + INTERVAL '1 day';
+        `,
+        "Last Quarter": `
+          SELECT
+            ARRAY_AGG(DISTINCT wa_id) AS wa_ids
+          FROM daily_message
+          WHERE input_time >= CURRENT_DATE - INTERVAL '12 weeks' AND input_time < CURRENT_DATE + INTERVAL '1 day';
+        `,
+      };
+
+      const result = await db.query(queries["Last 24 Hours"]);
+      const result1 = await db.query(queries["Last Week"]);
+      const result2 = await db.query(queries["Last Month"]);
+      const result3 = await db.query(queries["Last 2 Months"]);
+      const result4 = await db.query(queries["Last Quarter"]);
+
+      const processWAIDs = (entries: { wa_ids: string[] }[], parsePhone: Function) => {
+        if (!entries[0].wa_ids) {
+          return [];
+        }
+
+        // Initialize a Map to group by region
+        const regionMap = new Map<string, number>();
+
+        // Traverse the entries and process each wa_id
+        entries.forEach((entry) => {
+          entry.wa_ids.forEach((wa_id) => {
+            const parsed = parsePhone(wa_id); // Parse the phone number
+            const region = `${parsed.countryISOCode} (+${parsed.countryCode})`; // Create region string
+
+            // Update count in the map
+            if (regionMap.has(region)) {
+              regionMap.set(region, regionMap.get(region)! + 1);
+            } else {
+              regionMap.set(region, 1);
+            }
+          });
+        });
+
+        // Convert the Map into an array for the chart
+        const regionData = Array.from(regionMap.entries()).map(([region, count]) => ({
+          region,
+          amount: count, // Use count for now; you can calculate percentages later
+        }));
+
+        return regionData;
+      };
+
+      const proccessedResult = processWAIDs(result.rows, parsePhone);
+      const proccessedResult1 = processWAIDs(result1.rows, parsePhone);
+      const proccessedResult2 = processWAIDs(result2.rows, parsePhone);
+      const proccessedResult3 = processWAIDs(result3.rows, parsePhone);
+      const proccessedResult4 = processWAIDs(result4.rows, parsePhone);
+
+      return [
+        proccessedResult,
+        proccessedResult1,
+        proccessedResult2,
+        proccessedResult3,
+        proccessedResult4,
+      ];
+    } catch (error) {
+      console.error("Error fetching WAIDS:", error);
       throw error;
     }
   }

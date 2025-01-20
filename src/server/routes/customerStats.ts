@@ -66,4 +66,15 @@ router.get("/stats/AIhandled", async (_req, res) => {
   }
 });
 
+router.get("/stats/WAIDS", async (_req, res) => {
+  try {
+    const stats = await CustomerService.getWAIDS();
+    res.json(stats);
+    console.log("WAIDS retrieved good");
+  } catch (error) {
+    console.error("Failed to fetch WAIDS:", error);
+    res.status(500).json({ error: "Failed to fetch WAIDS" });
+  }
+});
+
 export const customerStatsRouter = router;
