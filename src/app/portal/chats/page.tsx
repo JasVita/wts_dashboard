@@ -24,7 +24,7 @@ const defaultChat: Chat = {
   messages: [
     {
       id: "1",
-      content: "Hello! How can I help you today?",
+      content: "Hello! How can I help you today? Hello! How can I help you today? Hello! How can I help you today?",
       senderId: "1",
       createdAt: "2024-01-17T00:00:00.000Z"
     }
@@ -121,7 +121,7 @@ export default function ChatsPage() {
   return (
     <div className="flex flex-1 h-screen">
       {/* Left Sidebar */}
-      <div className="flex-shrink-0 w-90 bg-white border-r">
+      <div className="flex-shrink-0 w-[350px] bg-white border-r">
         {/* Search Bar */}
         <div className="p-2 border-b">
           <div className="relative">
@@ -225,7 +225,7 @@ export default function ChatsPage() {
   
         {/* Chat List */}
         <ScrollArea className="h-screen">
-          <div className="w-full border-b">
+          <div className="w-[350px] border-b">
             <div className="p-4 bg-green-50 flex items-center space-x-2">
               <UserCog className="w-5 h-5 text-green-600" />
               <h2 className="font-medium text-green-800">人工客服</h2>
