@@ -96,7 +96,7 @@ export const AnalyticsView: React.FC = () => {
   });
 
   useEffect(() => {
-    const fetchActiveUsers = async () => {
+    const fetchStats = async () => {
       try {
         const response = await axios.get(
           `${import.meta.env.VITE_API_BASE_URL}/stats/stats/activeUsers`
@@ -117,23 +117,23 @@ export const AnalyticsView: React.FC = () => {
         setWAIDS(response4.data);
 
         // Initialize an array of zeros with the same length as `timeIntervals`
-        const initialData = Array(labelsByTimeline[selectedTimeline].length).fill(0);
+        const initialBarChart = Array(labelsByTimeline[selectedTimeline].length).fill(0);
 
-        // Populate the result array based on `initialData`
+        // Populate the result array based on `initialBarChart`
         response.data[0].forEach((entry: { time_interval: string; info: number }) => {
           const index = labelsByTimeline[selectedTimeline].indexOf(entry.time_interval); // Find the index of the time interval
-          initialData[index] = Number(entry.info); // Set the user count at the correct index
+          initialBarChart[index] = Number(entry.info); // Set the user count at the correct index
         });
 
         // Initialize Pie Chart Data for "Last 24 Hours"
-        const initialTimelineData = response4.data[0]; // Assuming index 0 is "Last 24 Hours"
+        const initialPieChart = response4.data[0]; // Assuming index 0 is "Last 24 Hours"
 
         setBarChartData({
           labels: labelsByTimeline[selectedTimeline],
           datasets: [
             {
               label: `${selectedStat} Data`,
-              data: initialData,
+              data: initialBarChart,
               backgroundColor: "rgba(54, 162, 235, 0.6)",
               borderColor: "rgba(54, 162, 235, 1)",
               borderWidth: 1,
@@ -142,10 +142,10 @@ export const AnalyticsView: React.FC = () => {
         });
 
         setpieChartData({
-          labels: initialTimelineData.map((item: { region: any }) => item.region),
+          labels: initialPieChart.map((item: { region: any }) => item.region),
           datasets: [
             {
-              data: initialTimelineData.map((item: { percentage: any }) => item.percentage),
+              data: initialPieChart.map((item: { percentage: any }) => item.percentage),
             },
           ],
         });
@@ -154,7 +154,7 @@ export const AnalyticsView: React.FC = () => {
       }
     };
 
-    fetchActiveUsers();
+    fetchStats();
   }, []);
 
   useEffect(() => {

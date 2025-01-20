@@ -35,7 +35,7 @@ router.get("/stats/hotWords", async (_req, res) => {
 
 router.get("/stats/activeUsers", async (_req, res) => {
   try {
-    const stats = await CustomerService.getActiveUsers();
+    const stats = await CustomerService.getData("daily_message", "input_time", "", true);
     res.json(stats);
     console.log("active users fetched retrieved good");
   } catch (error) {
@@ -46,7 +46,11 @@ router.get("/stats/activeUsers", async (_req, res) => {
 
 router.get("/stats/bookedMeetings", async (_req, res) => {
   try {
-    const stats = await CustomerService.getBookedMeetings();
+    const stats = await CustomerService.getData(
+      "google_meets",
+      "starttime",
+      "AND status = 'confirmed'"
+    );
     res.json(stats);
     console.log("booked meetings retrieved good");
   } catch (error) {
@@ -57,7 +61,18 @@ router.get("/stats/bookedMeetings", async (_req, res) => {
 
 router.get("/stats/AIhandled", async (_req, res) => {
   try {
-    const stats = await CustomerService.getAIhandled();
+    const stats = await CustomerService.getData(
+      "daily_message",
+      "input_time",
+      `
+      AND name NOT IN (
+        SELECT name
+        FROM daily_message
+        WHERE conv_mode != 'AI'
+      )
+    `,
+      true
+    );
     res.json(stats);
     console.log("AI handled retrieved good");
   } catch (error) {
