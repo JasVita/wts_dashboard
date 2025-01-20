@@ -85,6 +85,8 @@ export const AnalyticsView: React.FC = () => {
   const [activeUsers, setactiveUsers] = useState<any>({});
   const [bookedMeetings, setbookedMeetings] = useState<any>({});
   const [AIhandled, setAIhandled] = useState<any>({});
+  const [initialMessages, setinitialMessages] = useState<any>({});
+  const [initialMessagesDisplay, setinitialMessagesDisplay] = useState<any[]>([]);
   const [WAIDS, setWAIDS] = useState<any>({});
   const [barChartData, setBarChartData] = useState<ChartData<"bar">>({
     labels: [],
@@ -94,6 +96,7 @@ export const AnalyticsView: React.FC = () => {
     labels: [],
     datasets: [],
   });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -116,6 +119,11 @@ export const AnalyticsView: React.FC = () => {
         const response4 = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/stats/stats/WAIDS`);
         setWAIDS(response4.data);
 
+        const response5 = await axios.get(
+          `${import.meta.env.VITE_API_BASE_URL}/stats/stats/initialMessage`
+        );
+        setinitialMessages(response5.data);
+
         // Initialize an array of zeros with the same length as `timeIntervals`
         const initialBarChart = Array(labelsByTimeline[selectedTimeline].length).fill(0);
 
@@ -127,6 +135,8 @@ export const AnalyticsView: React.FC = () => {
 
         // Initialize Pie Chart Data for "Last 24 Hours"
         const initialPieChart = response4.data[0]; // Assuming index 0 is "Last 24 Hours"
+
+        setinitialMessagesDisplay(response5.data[0]);
 
         setBarChartData({
           labels: labelsByTimeline[selectedTimeline],
@@ -151,6 +161,8 @@ export const AnalyticsView: React.FC = () => {
         });
       } catch (error) {
         console.error("Error fetching active users:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -205,6 +217,10 @@ export const AnalyticsView: React.FC = () => {
   useEffect(() => {
     try {
       const data = WAIDS[timelineOptions.indexOf(selectedTimeline)];
+      setinitialMessagesDisplay(initialMessages[timelineOptions.indexOf(selectedTimeline)]);
+
+      console.log("initialMessages: ", initialMessages);
+      console.log("initialMessagesDisplay: ", initialMessagesDisplay);
 
       setpieChartData({
         labels: data.map((item: any) => item.region),
@@ -213,7 +229,6 @@ export const AnalyticsView: React.FC = () => {
             label: `${selectedStat} Data`,
             data: data.map((item: any) => item.amount),
             backgroundColor: ["#FF6384", "#FFCE56", "4BC0C0"],
-            // borderColor: "rgba(54, 162, 235, 1)",
             borderWidth: 1,
           },
         ],
@@ -222,14 +237,6 @@ export const AnalyticsView: React.FC = () => {
       console.error("Error updating timeline for active users:", error);
     }
   }, [selectedTimeline]);
-
-  const initialMessagesData = [
-    { message: "Hi", count: 1200 },
-    { message: "Hello", count: 800 },
-    { message: "Help", count: 500 },
-    { message: "Question", count: 300 },
-    { message: "Support", count: 200 },
-  ];
 
   const barChartOptions = {
     responsive: true,
@@ -276,6 +283,14 @@ export const AnalyticsView: React.FC = () => {
       },
     },
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen w-screen">
+        <h1 className="text-2xl font-semibold text-center">Loading...</h1>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 bg-gray-50 p-6">
@@ -338,12 +353,13 @@ export const AnalyticsView: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {initialMessagesData.map(({ message, count }) => (
-                <tr key={message}>
-                  <td className="border-b p-2">"{message}"</td>
-                  <td className="border-b p-2">{count} users</td>
-                </tr>
-              ))}
+              {initialMessagesDisplay &&
+                initialMessagesDisplay.map(({ message, count }: any) => (
+                  <tr key={message}>
+                    <td className="border-b p-2">"{message}"</td>
+                    <td className="border-b p-2">{count} users</td>
+                  </tr>
+                ))}
             </tbody>
           </table>
         </div>

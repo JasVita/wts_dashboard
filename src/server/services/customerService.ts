@@ -3,8 +3,6 @@ import { CustomerStats } from "../types";
 
 import parsePhone from "../../../local_modules/phoneparser/index.js";
 
-console.log(parsePhone("77718997711"));
-
 export class CustomerService {
   static async getStats(): Promise<CustomerStats> {
     try {
@@ -243,6 +241,99 @@ export class CustomerService {
       ];
     } catch (error) {
       console.error("Error fetching WAIDS:", error);
+      throw error;
+    }
+  }
+
+  static async getInitialMessage(): Promise<any> {
+    try {
+      const queries = {
+        "Last 24 Hours": `
+          SELECT 
+            input_content AS message, 
+            COUNT(*) AS count
+          FROM (
+            SELECT DISTINCT ON (name) name, input_content
+            FROM daily_message
+            WHERE input_time >= CURRENT_DATE 
+              AND input_time < CURRENT_DATE + INTERVAL '1 day'
+              AND input_content IS NOT NULL -- Exclude NULL messages
+            ORDER BY name, input_time ASC -- Get the first message for each user
+          ) subquery
+          GROUP BY input_content
+          ORDER BY count DESC; -- Optional: Order by count descending
+        `,
+        "Last Week": `
+          SELECT 
+            input_content AS message, 
+            COUNT(*) AS count
+          FROM (
+            SELECT DISTINCT ON (name) name, input_content
+            FROM daily_message
+            WHERE input_time >= CURRENT_DATE - INTERVAL '6 days' 
+              AND input_time < CURRENT_DATE + INTERVAL '1 day'
+              AND input_content IS NOT NULL -- Exclude NULL messages
+            ORDER BY name, input_time ASC -- Get the first message for each user
+          ) subquery
+          GROUP BY input_content
+          ORDER BY count DESC; -- Optional: Order by count descending
+        `,
+        "Last Month": `
+          SELECT 
+            input_content AS message, 
+            COUNT(*) AS count
+          FROM (
+            SELECT DISTINCT ON (name) name, input_content
+            FROM daily_message
+            WHERE input_time >= CURRENT_DATE - INTERVAL '29 days' 
+              AND input_time < CURRENT_DATE + INTERVAL '1 day'
+              AND input_content IS NOT NULL -- Exclude NULL messages
+            ORDER BY name, input_time ASC -- Get the first message for each user
+          ) subquery
+          GROUP BY input_content
+          ORDER BY count DESC; -- Optional: Order by count descending
+        `,
+        "Last 2 Months": `
+          SELECT 
+            input_content AS message, 
+            COUNT(*) AS count
+          FROM (
+            SELECT DISTINCT ON (name) name, input_content
+            FROM daily_message
+            WHERE input_time >= CURRENT_DATE - INTERVAL '8 weeks' 
+              AND input_time < CURRENT_DATE + INTERVAL '1 day'
+              AND input_content IS NOT NULL -- Exclude NULL messages
+            ORDER BY name, input_time ASC -- Get the first message for each user
+          ) subquery
+          GROUP BY input_content
+          ORDER BY count DESC; -- Optional: Order by count descending
+        `,
+        "Last Quarter": `
+          SELECT 
+            input_content AS message, 
+            COUNT(*) AS count
+          FROM (
+            SELECT DISTINCT ON (name) name, input_content
+            FROM daily_message
+            WHERE input_time >= CURRENT_DATE - INTERVAL '12 weeks' 
+              AND input_time < CURRENT_DATE + INTERVAL '1 day'
+              AND input_content IS NOT NULL -- Exclude NULL messages
+            ORDER BY name, input_time ASC -- Get the first message for each user
+          ) subquery
+          GROUP BY input_content
+          ORDER BY count DESC; -- Optional: Order by count descending
+        `,
+      };
+
+      const result = await db.query(queries["Last 24 Hours"]);
+      const result1 = await db.query(queries["Last Week"]);
+      const result2 = await db.query(queries["Last Month"]);
+      const result3 = await db.query(queries["Last 2 Months"]);
+      const result4 = await db.query(queries["Last Quarter"]);
+
+      return [result.rows, result1.rows, result2.rows, result3.rows, result4.rows];
+    } catch (error) {
+      console.error("Error fetching iniital message:", error);
       throw error;
     }
   }

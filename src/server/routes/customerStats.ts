@@ -92,4 +92,15 @@ router.get("/stats/WAIDS", async (_req, res) => {
   }
 });
 
+router.get("/stats/initialMessage", async (_req, res) => {
+  try {
+    const stats = await CustomerService.getInitialMessage();
+    res.json(stats);
+    console.log("initial message retrieved good");
+  } catch (error) {
+    console.error("Failed to fetch initial message:", error);
+    res.status(500).json({ error: "Failed to fetch initial message" });
+  }
+});
+
 export const customerStatsRouter = router;
