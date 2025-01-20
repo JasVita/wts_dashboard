@@ -39,19 +39,19 @@ export default function PortalLayout({
             href="/portal/chats"
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
           >
-            <MessageSquare className="w-6 h-6" />
+            <MessageSquare className="w-6 h-6 text-[#2563eb]" />
           </Link>
           <Link
             href="/portal/dashboard"
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
           >
-            <LayoutDashboard className="w-6 h-6" />
+            <LayoutDashboard className="w-6 h-6 text-[#2563eb]" />
           </Link>
           <Link
             href="/portal/playground"
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
           >
-            <Sparkles className="w-6 h-6" />
+            <Sparkles className="w-6 h-6 text-[#2563eb]" />
           </Link>
         </div>
         <div className="flex flex-col items-center">

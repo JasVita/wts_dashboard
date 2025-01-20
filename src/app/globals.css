@@ -3,19 +3,36 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: 0 0% 100%;
+  --foreground: 222.2 84% 4.9%;
+  --border: 214.3 31.8% 91.4%; /* Ensure this exists */
+  --radius: 1rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  * {
+    @apply border-gray-200; /* Replace `border-border` with `border-gray-200` or your desired class */
+  }
+  body {
+    @apply bg-background text-gray-800;
   }
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+/* Custom styles for search input */
+.search-input {
+  @apply rounded-full border-gray-200 bg-gray-50 focus:border-gray-300 focus:ring-0;
+}
+
+/* Custom styles for action buttons */
+.action-button {
+  @apply text-[#2563eb] hover:bg-blue-50;
+}
+
+/* Custom text colors */
+.text-action {
+  color: #2563eb;
+}
+
+.text-dark {
+  color: #1f2937;
 }
