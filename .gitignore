@@ -2,8 +2,12 @@
 
 # dependencies
 /node_modules
+clients/node_modules
+server/node_modules
 /.pnp
 .pnp.*
+
+# Yarn-related files
 .yarn/*
 !.yarn/patches
 !.yarn/plugins
@@ -13,29 +17,34 @@
 # testing
 /coverage
 
-# next.js
-/.next/
-/out/
+# Next.js-specific files in clients
+clients/.next/
+clients/out/
 
-# production
+# production builds
 /build
+clients/build
+server/build
 
-# misc
+# miscellaneous
 .DS_Store
 *.pem
 
-# debug
+# debug logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# environment files
+.env
+.env.*
+clients/.env
+server/.env
 
-# vercel
+# Vercel files (if using Vercel)
 .vercel
 
-# typescript
+# TypeScript-related files
 *.tsbuildinfo
-next-env.d.ts
+clients/next-env.d.ts

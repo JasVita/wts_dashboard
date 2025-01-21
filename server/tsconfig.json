@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    /* Basic Options */
+    "target": "ES2020",                    
+    "module": "es2020",                    
+    "moduleResolution": "node",            
+    "lib": ["ES2020"],                     
+    "outDir": "./dist",                    
+    "rootDir": "./",                       
+    "strict": true,                        
+    "esModuleInterop": true,               
+    "allowSyntheticDefaultImports": true, 
+    "resolveJsonModule": true,             
+    "skipLibCheck": true,                  
+    "noImplicitAny": true,                 
+    "noImplicitReturns": true,             
+
+    /* Advanced Options */
+    "baseUrl": "./",                       
+    "paths": {                             
+      "@db/*": ["db/*"],
+      "@routes/*": ["routes/*"],
+      "@middleware/*": ["middleware/*"]
+    },
+    "typeRoots": ["./node_modules/@types"],
+    "allowJs": false,                      
+    "noEmitOnError": true,                
+
+    /* Debugging Options */
+    "sourceMap": true,                     
+    "inlineSources": true                 
+  },
+  "include": ["**/*.ts"],                  
+  "exclude": ["node_modules", "dist", "db/store2DB.ts", "db/getFromDB.ts", "server/routes/auth.ts", "server/routes/chats.ts"]
+}
