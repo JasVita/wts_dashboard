@@ -1,4 +1,5 @@
 "use client";
+// need daily_message, google_meets, customerlist tables
 import React, { useEffect, useState } from "react";
 import { Bar, Pie } from "react-chartjs-2";
 import {

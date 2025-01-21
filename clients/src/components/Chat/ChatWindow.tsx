@@ -1,3 +1,4 @@
+// need daily_message, customerlist, customer_label tables
 import React, { useEffect, useRef, useState } from "react";
 import { ArrowLeft, Star, Equal } from "lucide-react";
 import { Chat, Label } from "../../types";

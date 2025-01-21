@@ -17,7 +17,7 @@ const dbConfig = {
   },
 };
 
-console.log('Database Config:', dbConfig);
+// console.log('Database Config:', dbConfig);
 
 export const pool = new Pool(dbConfig);
 

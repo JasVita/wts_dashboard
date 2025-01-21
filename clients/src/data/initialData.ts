@@ -1,3 +1,5 @@
+// need customerlist, customer_label, daily_message tables
+
 import { Chat, Label } from "../types";
 
 export const fetchChats = async (): Promise<Chat[]> => {

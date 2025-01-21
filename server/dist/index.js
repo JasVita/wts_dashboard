@@ -11,7 +11,7 @@
 // import { pushHumanRouter } from './routes/pushHumanRouter';
 // import { initSocketIO } from './socket';
 import './db/connection.js'; // ensures DB connection is initiated
-import { listAllTables } from './db/getFromDB.js'; // <-- IMPORT OUR FUNCTION
+import { listAllTables, listAllTableColumns } from './db/getFromDB.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import express from 'express';
@@ -41,7 +41,7 @@ const server = createServer(app);
 const PORT = 5000;
 server.listen(PORT, async () => {
     console.log(`[Index]: Server running on port ${PORT}`);
-    // === Call listAllTables on startup and log the result ===
+    // 1) List all table names
     try {
         const tables = await listAllTables();
         console.log('[Index]: Tables in DB =>', tables);
@@ -49,6 +49,14 @@ server.listen(PORT, async () => {
     }
     catch (err) {
         console.error('[Index]: Error listing tables =>', err);
+    }
+    // 2) List columns and data types for each table in the public schema
+    try {
+        const columns = await listAllTableColumns();
+        console.log('[Index]: Table columns =>', columns);
+    }
+    catch (err) {
+        console.error('[Index]: Error listing columns =>', err);
     }
 });
 // ===== COMMENTED OUT ROUTES =====

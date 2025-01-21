@@ -1,4 +1,5 @@
 "use client";
+// need daily_message, customerlist tables
 import { useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
 import { Sidebar } from "../../components/Sidebar/Sidebar";

@@ -13,7 +13,7 @@ const dbConfig = {
         rejectUnauthorized: false,
     },
 };
-console.log('Database Config:', dbConfig);
+// console.log('Database Config:', dbConfig);
 export const pool = new Pool(dbConfig);
 // Log connection success or failure on startup
 pool.connect((err, client, release) => {

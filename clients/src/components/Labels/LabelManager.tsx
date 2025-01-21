@@ -1,3 +1,4 @@
+// need customer_label table
 import React, { useEffect, useState } from "react";
 import { ChevronDown, ChevronRight, Plus, X } from "lucide-react";
 import { Label } from "../../types";

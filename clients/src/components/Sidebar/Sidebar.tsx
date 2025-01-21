@@ -1,3 +1,4 @@
+// need customerlist, customer_label tables
 import React, { useEffect, useState } from "react";
 import { Chat, Label } from "../../types";
 import { ChatSection } from "./ChatSection";
