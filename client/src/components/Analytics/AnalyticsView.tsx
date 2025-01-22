@@ -103,24 +103,22 @@ export const AnalyticsView: React.FC = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await axios.get(
-          `${process.env.VITE_API_BASE_URL}/stats/activeUsers`
-        );
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/stats/activeUsers`);
         setactiveUsers(response.data);
 
         const response2 = await axios.get(
-          `${process.env.VITE_API_BASE_URL}/stats/bookedMeetings`
+          `${process.env.NEXT_PUBLIC_API_URL}/stats/bookedMeetings`
         );
         setbookedMeetings(response2.data);
 
-        const response3 = await axios.get(`${process.env.VITE_API_BASE_URL}/stats/AIhandled`);
+        const response3 = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/stats/AIhandled`);
         setAIhandled(response3.data);
 
-        const response4 = await axios.get(`${process.env.VITE_API_BASE_URL}/stats/WAIDS`);
+        const response4 = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/stats/WAIDS`);
         setWAIDS(response4.data);
 
         const response5 = await axios.get(
-          `${process.env.VITE_API_BASE_URL}/stats/initialMessage`
+          `${process.env.NEXT_PUBLIC_API_URL}/stats/initialMessage`
         );
         setinitialMessages(response5.data);
 
@@ -286,7 +284,7 @@ export const AnalyticsView: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen w-screen">
+      <div className="flex items-center justify-center h-screen">
         <h1 className="text-2xl font-semibold text-center">Loading...</h1>
       </div>
     );

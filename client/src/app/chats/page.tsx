@@ -165,7 +165,7 @@ function App() {
   // Handler: Switch Chat Status (AI <-> Human)
   // ---------------------------
   const handleStatusChange = async (chat: Chat) => {
-    await axios.patch(`${process.env.VITE_API_BASE_URL}/customers/toggleConvMode`, {
+    await axios.patch(`${process.env.NEXT_PUBLIC_API_URL}/customers/toggleConvMode`, {
       wa_id: chat.wa_id,
       isAI: !chat.isAI,
     });
@@ -215,7 +215,7 @@ function App() {
       const now = new Date();
       const offsetTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
       const formattedTime = offsetTime.toISOString().split(".")[0].replace("T", " ");
-      await axios.post(`${process.env.VITE_API_BASE_URL}/messages/store`, {
+      await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/messages/store`, {
         wa_id: selectedChat.wa_id,
         name: selectedChat.name,
         language: franc(message),
@@ -263,7 +263,7 @@ function App() {
   const handleToggleImportant = async (chat: Chat) => {
     const updatedChat = { ...chat, isImportant: !chat.isImportant };
 
-    await axios.patch(`${process.env.VITE_API_BASE_URL}/customers/toggleImportance`, {
+    await axios.patch(`${process.env.NEXT_PUBLIC_API_URL}/customers/toggleImportance`, {
       wa_id: chat.wa_id,
       importance: updatedChat.isImportant,
     });
