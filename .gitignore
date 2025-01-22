@@ -2,7 +2,7 @@
 
 # dependencies
 /node_modules
-clients/node_modules
+client/node_modules
 server/node_modules
 /.pnp
 .pnp.*
@@ -18,12 +18,13 @@ server/node_modules
 /coverage
 
 # Next.js-specific files in clients
-clients/.next/
-clients/out/
+client/.next/
+client/out/
+client/next-env.d.ts
 
 # production builds
 /build
-clients/build
+client/build
 server/build
 
 # miscellaneous
@@ -39,7 +40,7 @@ yarn-error.log*
 # environment files
 .env
 .env.*
-clients/.env
+client/.env
 server/.env
 
 # Vercel files (if using Vercel)
