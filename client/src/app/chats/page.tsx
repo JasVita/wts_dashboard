@@ -165,7 +165,7 @@ function App() {
   // Handler: Switch Chat Status (AI <-> Human)
   // ---------------------------
   const handleStatusChange = async (chat: Chat) => {
-    await axios.patch(`${process.env.VITE_API_BASE_URL}/toggleConvMode`, {
+    await axios.patch(`${process.env.VITE_API_BASE_URL}/customers/toggleConvMode`, {
       wa_id: chat.wa_id,
       isAI: !chat.isAI,
     });
@@ -263,7 +263,7 @@ function App() {
   const handleToggleImportant = async (chat: Chat) => {
     const updatedChat = { ...chat, isImportant: !chat.isImportant };
 
-    await axios.patch(`${process.env.VITE_API_BASE_URL}/toggleImportance`, {
+    await axios.patch(`${process.env.VITE_API_BASE_URL}/customers/toggleImportance`, {
       wa_id: chat.wa_id,
       importance: updatedChat.isImportant,
     });

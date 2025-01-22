@@ -1,31 +1,11 @@
 import { Router } from "express";
-import { CustomerService } from "../services/customerService.ts";
+import { CustomerStatsService } from "../services/customerStatsService.ts";
 
 const router = Router();
 
-router.get("/stats/customers", async (_req, res) => {
-  try {
-    const customers = await CustomerService.getCustomers();
-    res.json(customers);
-  } catch (error) {
-    console.error("Failed to fetch customers:", error);
-    res.status(500).json({ error: "Failed to fetch customers" });
-  }
-});
-
-router.get("/stats/count", async (_req, res) => {
-  try {
-    const stats = await CustomerService.getStats();
-    res.json({ count: stats.totalCustomers });
-  } catch (error) {
-    console.error("Failed to fetch customer count:", error);
-    res.status(500).json({ error: "Failed to fetch customer count" });
-  }
-});
-
 router.get("/stats/activeUsers", async (_req, res) => {
   try {
-    const stats = await CustomerService.getData("daily_message", "input_time", "", true);
+    const stats = await CustomerStatsService.getData("daily_message", "input_time", "", true);
     res.json(stats);
     console.log("active users fetched retrieved good");
   } catch (error) {
@@ -36,7 +16,7 @@ router.get("/stats/activeUsers", async (_req, res) => {
 
 router.get("/stats/bookedMeetings", async (_req, res) => {
   try {
-    const stats = await CustomerService.getData(
+    const stats = await CustomerStatsService.getData(
       "google_meets",
       "starttime",
       "AND status = 'confirmed'"
@@ -51,7 +31,7 @@ router.get("/stats/bookedMeetings", async (_req, res) => {
 
 router.get("/stats/AIhandled", async (_req, res) => {
   try {
-    const stats = await CustomerService.getData(
+    const stats = await CustomerStatsService.getData(
       "daily_message",
       "input_time",
       `
@@ -73,7 +53,7 @@ router.get("/stats/AIhandled", async (_req, res) => {
 
 router.get("/stats/WAIDS", async (_req, res) => {
   try {
-    const stats = await CustomerService.getWAIDS();
+    const stats = await CustomerStatsService.getWAIDS();
     res.json(stats);
     console.log("WAIDS retrieved good");
   } catch (error) {
@@ -84,7 +64,7 @@ router.get("/stats/WAIDS", async (_req, res) => {
 
 router.get("/stats/initialMessage", async (_req, res) => {
   try {
-    const stats = await CustomerService.getInitialMessage();
+    const stats = await CustomerStatsService.getInitialMessage();
     res.json(stats);
     console.log("initial message retrieved good");
   } catch (error) {

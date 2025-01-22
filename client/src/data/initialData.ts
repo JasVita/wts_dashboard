@@ -5,7 +5,7 @@ import { Chat, Label } from "../types";
 export const fetchChats = async (): Promise<Chat[]> => {
   try {
     // @ts-ignore
-    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/chats/customers`);
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/customers/chats`);
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
@@ -21,7 +21,7 @@ export const fetchChats = async (): Promise<Chat[]> => {
 export const getLabels = async (): Promise<Label[]> => {
   try {
     // @ts-ignore
-    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/getTotalLabels/customers`);
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/customers/getTotalLabels`);
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }

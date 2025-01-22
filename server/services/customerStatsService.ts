@@ -6,7 +6,7 @@ interface CustomerStats {
   monthlyGrowth: string;
 }
 
-export class CustomerService {
+export class CustomerStatsService {
   static async getStats(): Promise<CustomerStats> {
     try {
       const result = await db.query(`

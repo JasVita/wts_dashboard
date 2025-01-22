@@ -81,14 +81,14 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     try {
       // Add wa_id to newly selected labels
       for (const labelId of addedLabels) {
-        await axios.patch(`${process.env.VITE_API_BASE_URL}/assignLabel/${labelId}`, {
+        await axios.patch(`${process.env.VITE_API_BASE_URL}/customers/assignLabel/${labelId}`, {
           wa_id: String(chat.wa_id), // Add the current chat's wa_id
         });
       }
 
       // Remove wa_id from newly deselected labels
       for (const labelId of removedLabels) {
-        await axios.patch(`${process.env.VITE_API_BASE_URL}/removeLabel/${labelId}`, {
+        await axios.patch(`${process.env.VITE_API_BASE_URL}/customers/removeLabel/${labelId}`, {
           wa_id: chat.wa_id, // Remove the current chat's wa_id
         });
       }

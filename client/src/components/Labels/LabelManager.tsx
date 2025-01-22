@@ -32,26 +32,26 @@ export const LabelManager: React.FC<LabelManagerProps> = ({
     setSelectedLabelId(passedselectedLabelId);
   }, [passedlabels]);
 
-  const handleDeleteLabel = async (id: string) => {
+  const handleDeleteLabel = async (labelId: string) => {
     try {
       // @ts-ignore
-      await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/deleteLabel/${id}`);
+      await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/customers/deleteLabel/${labelId}`);
 
       if (labels) {
-        setLabels(labels.filter((label) => label.id !== id));
-        if (selectedLabelId === id) {
+        setLabels(labels.filter((label) => label.id !== labelId));
+        if (selectedLabelId === labelId) {
           setSelectedLabelId(null);
         }
       }
     } catch (error) {
-      console.error(`Failed to delete label with ID ${id}:`, error);
+      console.error(`Failed to delete label with ID ${labelId}:`, error);
     }
   };
 
   const handleCreateLabel = async (name: string, color: string) => {
     try {
       // @ts-ignore
-      const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/addLabel/customers`, {
+      const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/customers/addLabel`, {
         name: name,
         color: color,
       });

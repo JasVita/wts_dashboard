@@ -4,7 +4,7 @@ import { CustomerChats } from "../services/cutomerChatsService.ts";
 
 const router = Router();
 
-router.get("/chats/customers", async (_req, res) => {
+router.get("/customers/chats", async (_req, res) => {
   try {
     const chats = await CustomerChats.getChats();
     res.json(chats);
@@ -14,7 +14,7 @@ router.get("/chats/customers", async (_req, res) => {
   }
 });
 
-router.post("/addLabel/customers", async (req, res): Promise<any> => {
+router.post("/customers/addLabel", async (req, res): Promise<any> => {
   try {
     const { name, color } = req.body;
 
@@ -36,7 +36,7 @@ router.post("/addLabel/customers", async (req, res): Promise<any> => {
   }
 });
 
-router.delete("/deleteLabel/:labelId", async (req, res): Promise<any> => {
+router.delete("/customers/deleteLabel/:labelId", async (req, res): Promise<any> => {
   try {
     const labelId = parseInt(req.params.labelId);
 
@@ -53,7 +53,7 @@ router.delete("/deleteLabel/:labelId", async (req, res): Promise<any> => {
   }
 });
 
-router.get("/getTotalLabels/customers", async (_req, res) => {
+router.get("/customers/getTotalLabels", async (_req, res) => {
   try {
     // Fetch all labels using the getTotalLabels function
     const labels = await CustomerChats.getTotalLabels();
@@ -66,7 +66,7 @@ router.get("/getTotalLabels/customers", async (_req, res) => {
   }
 });
 
-router.patch("/assignLabel/:labelId", async (req, res): Promise<any> => {
+router.patch("/customers/assignLabel/:labelId", async (req, res): Promise<any> => {
   const { labelId } = req.params;
   const { wa_id } = req.body;
 
@@ -86,7 +86,7 @@ router.patch("/assignLabel/:labelId", async (req, res): Promise<any> => {
   }
 });
 
-router.patch("/removeLabel/:labelId", async (req, res): Promise<any> => {
+router.patch("/customers/removeLabel/:labelId", async (req, res): Promise<any> => {
   const { labelId } = req.params;
   const { wa_id } = req.body;
 
@@ -106,7 +106,7 @@ router.patch("/removeLabel/:labelId", async (req, res): Promise<any> => {
   }
 });
 
-router.patch("/toggleImportance", async (req, res): Promise<any> => {
+router.patch("/customers/toggleImportance", async (req, res): Promise<any> => {
   const { wa_id, importance } = req.body;
 
   if (!wa_id) {
@@ -125,7 +125,7 @@ router.patch("/toggleImportance", async (req, res): Promise<any> => {
   }
 });
 
-router.patch("/toggleConvMode", async (req, res): Promise<any> => {
+router.patch("/customers/toggleConvMode", async (req, res): Promise<any> => {
   const { wa_id, isAI } = req.body;
 
   if (!wa_id) {
