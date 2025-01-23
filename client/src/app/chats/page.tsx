@@ -9,8 +9,6 @@ import { fetchChats } from "../../data/initialData";
 import axios from "axios";
 import { franc } from "franc";
 
-// const socket = io(process.env.NEXT_PUBLIC_API_URL);
-// For Admin
 const socket = io("http://localhost:5000");
 
 function App() {
@@ -48,8 +46,32 @@ function App() {
   // ---------------------------
 
   // Receiving messages from clients with socket
-  socket.on("messageFromClient", ({ clientId, message }) => {
-    console.log(`Message from Client (${clientId}):`, message);
+  socket.on("humanMessage", ({ wa_id, message_type, message_content }) => {
+    console.log(
+      `Message from pushHuman router, wa_id: ${wa_id}, name: ${name}, message_type: ${message_type}, message_content: ${message_content}`
+    );
+
+    // Define the new message
+    const newMessage = {
+      content: message_content,
+      isUser: true,
+      timestamp: new Date(),
+      input_type: message_type,
+    };
+
+    let isAI = undefined;
+    if (!isAI) console.log("lol");
+    const updatedChats = humanChats.map((chat) =>
+      chat.wa_id == wa_id
+        ? {
+            ...chat,
+            lastMessage: newMessage.content, // Update lastMessage
+            messages: [...chat.messages, newMessage], // Append the new message to messages array
+          }
+        : chat
+    );
+    // Set the updated chats to state
+    setHumanChats(updatedChats);
   });
 
   // ---------------------------

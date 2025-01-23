@@ -10,6 +10,7 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogClose,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import axios from "axios";
 import { getLabels } from "@/data/initialData";
@@ -184,15 +185,16 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                   )}
                 </div>
               </DialogTrigger>
-              <DialogTitle></DialogTitle>
               <DialogContent className="flex flex-col gap-0">
+                <DialogDescription className="hidden">chat</DialogDescription>
+                <DialogTitle className="hidden">Title</DialogTitle>
                 <img
                   src={chat.avatar}
                   className="w-1/4 h-full object-cover mx-auto mb-6 rounded-full"
                 />
                 <h3 className="mx-auto text-lg font-bold">{chat.name}</h3>
                 <h3 className="mx-auto text-base font-medium">{chat.wa_id}</h3>
-                <button
+                <div
                   onClick={() => onToggleImportant?.(chat)}
                   className={`mx-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors mb-4 ${
                     chat.isImportant
@@ -205,11 +207,14 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                   <span className="text-sm font-medium">
                     {chat.isImportant ? "取消重要標記" : "標記為重要"}
                   </span>
-                </button>
+                </div>
                 {labels && chat.labels && chat.labels.length > 0 && (
                   <div className="flex flex-col items-center">
                     {labels.map((label) => (
-                      <div className="flex items-center gap-3 rounded-full transition-colors h-full mb-3 w-52 ml-2">
+                      <div
+                        key={label.id}
+                        className="flex items-center gap-3 rounded-full transition-colors h-full mb-3 w-52 ml-2"
+                      >
                         <div
                           className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded-full w-full ${label.color.replace(
                             "bg-",
@@ -229,14 +234,16 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                 <div className="flex gap-2 flex-col w-1/2 self-center">
                   <Dialog>
                     <DialogTrigger onClick={handleOpenDialog}>
-                      <button className="flex items-center gap-2 rounded-lg hover:bg-gray-100 transition-colors h-6 ml-14">
+                      <div className="flex items-center justify-center gap-2 rounded-lg hover:bg-gray-100 transition-colors h-6 w-2/3 mx-auto">
                         <Equal className="w-4 h-4 text-gray-500 text-base"></Equal>
                         <span className="text-base font-normal text-gray-500 px-1.5">
                           assign label
                         </span>
-                      </button>
+                      </div>
                     </DialogTrigger>
                     <DialogContent className="w-96">
+                      <DialogDescription className="hidden">labels</DialogDescription>
+                      <DialogTitle className="hidden">Title</DialogTitle>
                       <div className="flex flex-col items-center p-4">
                         <h3 className="text-lg font-medium text-gray-700 mb-4">Assign Labels</h3>
 
@@ -283,12 +290,12 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                             </button>
                           </DialogClose>
                           <DialogClose>
-                            <button
+                            <div
                               onClick={handleSave}
                               className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition"
                             >
                               Save
-                            </button>
+                            </div>
                           </DialogClose>
                         </div>
                       </div>

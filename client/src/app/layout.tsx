@@ -8,7 +8,7 @@ export const metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="flex h-full bg-gray-100">
+      <body className="flex h-full bg-gray-100" suppressHydrationWarning={true}>
         <NarrowSidebar />
         <main className="flex-1">{children}</main>
       </body>

@@ -168,6 +168,7 @@ export const AnalyticsView: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    if (loading) return;
     try {
       const dataSources: any = {
         "Active Users": activeUsers,
@@ -213,6 +214,7 @@ export const AnalyticsView: React.FC = () => {
   }, [selectedTimeline, selectedStat]);
 
   useEffect(() => {
+    if (loading) return;
     try {
       const data = WAIDS[timelineOptions.indexOf(selectedTimeline)];
       setinitialMessagesDisplay(initialMessages[timelineOptions.indexOf(selectedTimeline)]);

@@ -7,16 +7,14 @@ export const pushHumanRouter = Router();
 pushHumanRouter.post("/push-human", (req, res) => {
   try {
     // The Python code will send JSON like { wa_id, name, message_type, message_content, db_time_format, ... }
-    const { wa_id, name, message_type, message_content, db_time_format } = req.body;
+    const { wa_id, message_type, message_content } = req.body;
     console.log("Received new human message from Python:", req.body);
 
     // Emit to all clients on the "humanMessage" event
     io.emit("humanMessage", {
       wa_id,
-      name,
       message_type,
       message_content,
-      db_time_format,
     });
 
     res.status(201).json({ message: "Message from python emitted successfuly: ", message_content });
