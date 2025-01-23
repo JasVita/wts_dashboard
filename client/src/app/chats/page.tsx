@@ -1,13 +1,17 @@
 "use client";
 // need daily_message, customerlist tables
 import { useEffect, useState } from "react";
-import { io, Socket } from "socket.io-client";
+import { io } from "socket.io-client";
 import { Sidebar } from "../../components/Sidebar/Sidebar";
 import { ChatWindow } from "../../components/Chat/ChatWindow";
 import { Chat } from "../../types";
 import { fetchChats } from "../../data/initialData";
 import axios from "axios";
 import { franc } from "franc";
+
+// const socket = io(process.env.NEXT_PUBLIC_API_URL);
+// For Admin
+const socket = io("http://localhost:5000");
 
 function App() {
   // ---------------------------
@@ -38,100 +42,15 @@ function App() {
   // Selected chat & Socket
   // ---------------------------
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
-  const [_socket, setSocket] = useState<Socket | null>(null);
 
   // ---------------------------
   // Socket.IO Setup & "humanMessage" Handler
   // ---------------------------
-  useEffect(() => {
-    // 1) Connect to your Node server domain
-    const newSocket = io("https://portal.turoid.ai", {
-      // If needed, path: "/socket.io", transports: ["websocket"], etc.
-    });
-    setSocket(newSocket);
 
-    // 2) Listen for connect event
-    newSocket.on("connect", () => {
-      console.log("Connected to Socket.IO server, id:", newSocket.id);
-    });
-
-    // 3) Listen for "humanMessage" from Node
-    newSocket.on("humanMessage", (data: any) => {
-      // Example data structure: { wa_id, name, message_type, message_content, db_time_format, ... }
-      console.log("Received humanMessage event:", data);
-
-      // 1) Prepare the new message object
-      const incomingMessage = {
-        content: data.message_content,
-        isUser: true,
-        isHuman: true,
-        timestamp: new Date(),
-        input_type: data.message_type || "text",
-      };
-
-      // 2) Check if there's an existing chat with this wa_id in humanChats
-      setHumanChats((prevChats) => {
-        console.log("Incoming WA ID =>", data.wa_id);
-        console.log(
-          "Current humanChats' WA IDs =>",
-          prevChats.map((c) => c.wa_id)
-        );
-
-        const existingChatIndex = prevChats.findIndex((chat) => chat.wa_id === data.wa_id);
-        if (existingChatIndex >= 0) {
-          // We found an existing chat
-          const updatedMessages = [...prevChats[existingChatIndex].messages, incomingMessage];
-          console.log("Found existing chat for wa_id:", prevChats[existingChatIndex].wa_id);
-
-          // The updated chat object
-          const updatedChat = {
-            ...prevChats[existingChatIndex],
-            lastMessage: data.message_content,
-            messages: updatedMessages,
-          };
-
-          // Return a new array with the updated chat replaced
-          const newChats = [...prevChats];
-          newChats[existingChatIndex] = updatedChat;
-          console.log("Updated existing chat =>", updatedChat);
-          // Automatically select this chat if it's not already selected
-          // if (!selectedChat || selectedChat.wa_id !== data.wa_id) {
-          //   setSelectedChat(updatedChat);
-          // }
-
-          // return newChats;
-          if (selectedChat?.wa_id === data.wa_id) {
-            setSelectedChat(updatedChat);
-          }
-
-          return newChats;
-        } else {
-          // 3) If chat not found, create a new one
-          console.log("No existing chat found for wa_id:", data.wa_id, " - creating a new chat.");
-
-          const newChat: Chat = {
-            wa_id: data.wa_id,
-            id: Date.now().toString(), // or some unique ID
-            name: data.name,
-            avatar: "https://example.com/human.png", // default avatar or your actual user avatar
-            isAI: false,
-            lastMessage: data.message_content,
-            messages: [incomingMessage],
-            labels: [],
-          };
-
-          console.log("Created new chat =>", newChat);
-          // setSelectedChat(newChat);
-          return [...prevChats, newChat];
-        }
-      });
-    });
-
-    // Cleanup when component unmounts
-    return () => {
-      newSocket.close();
-    };
-  }, []);
+  // Receiving messages from clients with socket
+  socket.on("messageFromClient", ({ clientId, message }) => {
+    console.log(`Message from Client (${clientId}):`, message);
+  });
 
   // ---------------------------
   // Initial fetch from DB (if any)
@@ -191,7 +110,7 @@ function App() {
     try {
       // 1) Send the message to WhatsApp
       const whatsappResponse = await axios.post(
-        `https://graph.facebook.com/${process.env.VITE_WHATSAPP_API_VERSION}/${process.env.VITE_WHATSAPP_PHONE_NUMBER_ID}/messages`,
+        `https://graph.facebook.com/${process.env.NEXT_PUBLIC_WHATSAPP_API_VERSION}/${process.env.NEXT_PUBLIC_WHATSAPP_PHONE_NUMBER_ID}/messages`,
         {
           messaging_product: "whatsapp",
           recipient_type: "individual",
@@ -204,7 +123,7 @@ function App() {
         },
         {
           headers: {
-            Authorization: `Bearer ${process.env.VITE_WHATSAPP_ACCESS_TOKEN}`,
+            Authorization: `Bearer ${process.env.NEXT_PUBLIC_WHATSAPP_ACCESS_TOKEN}`,
             "Content-Type": "application/json",
           },
         }
@@ -215,7 +134,7 @@ function App() {
       const now = new Date();
       const offsetTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
       const formattedTime = offsetTime.toISOString().split(".")[0].replace("T", " ");
-      await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/messages/store`, {
+      await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/push-adminToDB`, {
         wa_id: selectedChat.wa_id,
         name: selectedChat.name,
         language: franc(message),
