@@ -8,7 +8,7 @@ import { Server } from "socket.io";
 // Import API routes
 import { customerChatsRouter } from "./routes/customerChats.ts";
 import { customerStatsRouter } from "./routes/customerStats.ts";
-import { pushHumanRouter } from "./routes/pushHumanRouter.ts";
+import { messagesRouter } from "./routes/messagesRouter.ts";
 
 dotenv.config();
 
@@ -30,7 +30,7 @@ export const io = new Server(httpServer, {
 // 3) Attach your API routes
 app.use("/api", customerChatsRouter);
 app.use("/api", customerStatsRouter);
-app.use("/api", pushHumanRouter);
+app.use("/api", messagesRouter);
 
 // 6) Listen on port 5000
 const PORT = process.env.PORT;
