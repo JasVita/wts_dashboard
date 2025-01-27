@@ -32,12 +32,12 @@ function App() {
         },
       ],
       labels: [],
+      unread: false,
     },
   ]);
   const [humanChats, setHumanChats] = useState<Chat[]>([]);
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
   const selectedChatRef = useRef(selectedChat);
-  const socketRef = useRef<Socket | null>(null);
 
   useEffect(() => {
     selectedChatRef.current = selectedChat;
@@ -46,145 +46,11 @@ function App() {
   // ---------------------------
   // Socket.IO Setup & "humanMessage" Handler
   // ---------------------------
-  const handleIncomingMessage = async (
-    wa_id: string,
-    message_type: string,
-    message_content: string,
-    reply_content: string,
-    managed: string,
-    selectedChat: Chat | null,
-    name: string
-  ) => {
-    console.log("app is calling this function");
-    if (!wa_id || !message_type || !message_content) {
-      console.error("Invalid message data received");
-      return;
-    }
 
-    console.log(
-      `Message received, wa_id: ${wa_id}, message_type: ${message_type}, message_content: ${message_content}, managed: ${managed}`
-    );
-
-    const newMessage = {
-      content: message_content,
-      isUser: true,
-      timestamp: new Date(),
-      input_type: message_type,
-    };
-    const newReply = {
-      content: reply_content,
-      isUser: false,
-      timestamp: new Date(),
-      input_type: message_type,
-    };
-
-    if (managed === "human") {
-      const updatedChats = humanChats.map((chat) =>
-        chat.wa_id == wa_id
-          ? {
-              ...chat,
-              lastMessage: newMessage.content, // Update lastMessage
-              messages: [...chat.messages, newMessage], // Append the new message to messages array
-            }
-          : chat
-      );
-      // Set the updated chats to state
-      setHumanChats(updatedChats);
-
-      if (selectedChat) {
-        if (selectedChat.wa_id === wa_id) {
-          const updatedSelectedChat = {
-            ...selectedChat,
-            lastMessage: newMessage.content,
-            messages: [...selectedChat.messages, newMessage],
-          };
-          setSelectedChat(updatedSelectedChat);
-        }
-      }
-
-      const now = new Date();
-      const offsetTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
-      const formattedTime = offsetTime.toISOString().split(".")[0].replace("T", " ");
-      await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/messages/store`, {
-        wa_id: wa_id,
-        name: name,
-        language: franc(message_content),
-        input_time: formattedTime,
-        weekday: offsetTime.toLocaleDateString("en-US", { weekday: "long" }),
-        conv_mode: `human`,
-        input_content: message_content,
-        response: "",
-      });
-      console.log("Message saved to DB successfully.");
-      return;
-    }
-
-    if (managed === "ai") {
-      const updatedChats = aiChats.map((chat) =>
-        chat.wa_id == wa_id
-          ? {
-              ...chat,
-              lastMessage: newMessage.content, // Update lastMessage
-              messages: [...chat.messages, newMessage], // Append the new message to messages array
-            }
-          : chat
-      );
-      // Set the updated chats to state
-      setAiChats(updatedChats);
-
-      if (selectedChat) {
-        if (selectedChat.wa_id === wa_id) {
-          const updatedSelectedChat = {
-            ...selectedChat,
-            lastMessage: newReply.content,
-            messages: [...selectedChat.messages, newMessage, newReply],
-          };
-          setSelectedChat(updatedSelectedChat);
-        }
-      }
-
-      const now = new Date();
-      const offsetTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
-      const formattedTime = offsetTime.toISOString().split(".")[0].replace("T", " ");
-      await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/messages/store`, {
-        wa_id: wa_id,
-        name: name,
-        language: franc(message_content),
-        input_time: formattedTime,
-        weekday: offsetTime.toLocaleDateString("en-US", { weekday: "long" }),
-        conv_mode: `ai`,
-        input_content: message_content,
-        response: reply_content,
-      });
-      console.log("Message saved to DB successfully.");
-      return;
-    }
-
-    const newChat: Chat = {
-      wa_id,
-      id: Date.now().toString(), // need to figure out later
-      name: name,
-      avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop", // Default avatar
-      isAI: true,
-      lastMessage: newReply.content,
-      messages: [newMessage, newReply],
-      labels: [],
-      isImportant: false,
-    };
-
-    const updatedAiChats = [...aiChats, newChat];
-    setAiChats(updatedAiChats);
-  };
-
-  // Socket event listener
   useEffect(() => {
-    if (!socketRef.current) {
-      socketRef.current = io("http://localhost:5000");
-    }
+    const socket = io("http://localhost:5000");
 
-    const socket = socketRef.current;
-
-    const handleMessage = ({
+    const handleIncomingMessage = async ({
       wa_id,
       message_type,
       message_content,
@@ -199,23 +65,149 @@ function App() {
       managed: string;
       name: string;
     }) => {
-      handleIncomingMessage(
-        wa_id,
-        message_type,
-        message_content,
-        reply_content,
-        managed,
-        selectedChatRef.current,
-        name
+      console.log("app is calling this function");
+      if (!wa_id || !message_type || !message_content) {
+        console.error("Invalid message data received");
+        return;
+      }
+      console.log(
+        `Message received, wa_id: ${wa_id}, message_type: ${message_type}, message_content: ${message_content}, managed: ${managed}`
       );
+
+      const newMessage = {
+        content: message_content,
+        isUser: true,
+        timestamp: new Date(),
+        input_type: message_type,
+      };
+      const newReply = {
+        content: reply_content,
+        isUser: false,
+        timestamp: new Date(),
+        input_type: message_type,
+      };
+
+      if (managed === "human") {
+        // const updatedChats = humanChats.map((chat) =>
+        //   chat.wa_id == wa_id
+        //     ? {
+        //         ...chat,
+        //         lastMessage: newMessage.content, // Update lastMessage
+        //         messages: [...chat.messages, newMessage], // Append the new message to messages array
+        //       }
+        //     : chat
+        // );
+        // // Set the updated chats to state
+        // setHumanChats(updatedChats);
+
+        setHumanChats((prevChats) => {
+          const updatedChats = prevChats.map((chat) =>
+            chat.wa_id === wa_id
+              ? {
+                  ...chat,
+                  lastMessage: newMessage.content, // Update lastMessage
+                  messages: [...chat.messages, newMessage], // Append the new message to messages array
+                }
+              : chat
+          );
+          return updatedChats;
+        });
+
+        if (selectedChatRef.current && selectedChatRef.current.wa_id === wa_id) {
+          const updatedSelectedChat = {
+            ...selectedChat,
+            lastMessage: newMessage.content,
+            messages: [...selectedChatRef.current.messages, newMessage],
+          };
+          // @ts-ignore
+          setSelectedChat(updatedSelectedChat);
+        }
+
+        const now = new Date();
+        const offsetTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
+        const formattedTime = offsetTime.toISOString().split(".")[0].replace("T", " ");
+        await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/messages/store`, {
+          wa_id: wa_id,
+          name: name,
+          language: franc(message_content),
+          input_time: formattedTime,
+          weekday: offsetTime.toLocaleDateString("en-US", { weekday: "long" }),
+          conv_mode: `human`,
+          input_content: message_content,
+          response: "",
+        });
+        console.log("Message saved to DB successfully.");
+        return;
+      }
+
+      if (managed === "ai") {
+        setAiChats((prevChats) => {
+          const updatedChats = prevChats.map((chat) =>
+            chat.wa_id === wa_id
+              ? {
+                  ...chat,
+                  lastMessage: newReply.content, // Update lastMessage
+                  messages: [...chat.messages, newMessage, newReply], // Append the new message to messages array
+                }
+              : chat
+          );
+          return updatedChats;
+        });
+
+        if (selectedChatRef.current && selectedChatRef.current.wa_id === wa_id) {
+          const updatedSelectedChat = {
+            ...selectedChat,
+            lastMessage: newReply.content,
+            messages: [...selectedChatRef.current.messages, newMessage, newReply],
+          };
+          // @ts-ignore
+          setSelectedChat(updatedSelectedChat);
+        }
+
+        const now = new Date();
+        const offsetTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
+        const formattedTime = offsetTime.toISOString().split(".")[0].replace("T", " ");
+        await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/messages/store`, {
+          wa_id: wa_id,
+          name: name,
+          language: franc(message_content),
+          input_time: formattedTime,
+          weekday: offsetTime.toLocaleDateString("en-US", { weekday: "long" }),
+          conv_mode: `ai`,
+          input_content: message_content,
+          response: reply_content,
+        });
+        console.log("Message saved to DB successfully.");
+        return;
+      }
+
+      const newChat: Chat = {
+        wa_id,
+        id: Date.now().toString(), // need to figure out later
+        name: name,
+        avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop", // Default avatar
+        isAI: true,
+        lastMessage: newReply.content,
+        messages: [newMessage, newReply],
+        labels: [],
+        isImportant: false,
+        unread: selectedChatRef.current?.wa_id !== wa_id,
+      };
+
+      // const updatedAiChats = [...aiChats, newChat];
+      // setAiChats(updatedAiChats);
+
+      setAiChats((prevAiChats) => {
+        return [...prevAiChats, newChat];
+      });
     };
 
     // Register the listener
-    socket.on("humanMessage", handleMessage);
+    socket.on("humanMessage", handleIncomingMessage);
 
     // Cleanup the listener on unmount
     return () => {
-      socket.off("humanMessage", handleMessage);
+      socket.off("humanMessage", handleIncomingMessage);
     };
   }, []); // Ensure this only runs once
 

@@ -24,6 +24,7 @@ export interface Chat {
   }[];
   labels?: Label[];
   isImportant?: boolean;
+  unread: boolean;
 }
 
 export interface Label {
