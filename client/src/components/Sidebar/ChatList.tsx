@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Star } from "lucide-react";
+import { Circle, Star } from "lucide-react";
 import { Chat } from "../../types";
 
 interface ChatListProps {
@@ -40,7 +40,7 @@ export const ChatList: React.FC<ChatListProps> = ({ chats, isAI, onChatClick, on
                 <Star className="w-4 h-4 absolute -top-1 -right-1 text-yellow-500 fill-current" />
               )}
             </div>
-            <div className="ml-3 flex-1 min-w-0">
+            <div className="ml-3 flex-1 min-w-0 flex-row relative">
               <div className="flex items-center gap-2">
                 <h3 className="font-medium text-sm text-gray-900">{chat.name}</h3>
 
@@ -63,6 +63,14 @@ export const ChatList: React.FC<ChatListProps> = ({ chats, isAI, onChatClick, on
                 )}
               </div>
               <p className="text-sm text-gray-500 truncate">{chat.lastMessage}</p>
+              {chat.unread && (
+                <Circle
+                  className="text-green-500 absolute right-0 top-3"
+                  fill="currentColor"
+                  width={12}
+                  height={12}
+                />
+              )}
             </div>
             <button
               onClick={(e) => {

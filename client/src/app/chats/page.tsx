@@ -88,18 +88,6 @@ function App() {
       };
 
       if (managed === "human") {
-        // const updatedChats = humanChats.map((chat) =>
-        //   chat.wa_id == wa_id
-        //     ? {
-        //         ...chat,
-        //         lastMessage: newMessage.content, // Update lastMessage
-        //         messages: [...chat.messages, newMessage], // Append the new message to messages array
-        //       }
-        //     : chat
-        // );
-        // // Set the updated chats to state
-        // setHumanChats(updatedChats);
-
         setHumanChats((prevChats) => {
           const updatedChats = prevChats.map((chat) =>
             chat.wa_id === wa_id
@@ -107,6 +95,7 @@ function App() {
                   ...chat,
                   lastMessage: newMessage.content, // Update lastMessage
                   messages: [...chat.messages, newMessage], // Append the new message to messages array
+                  unread: selectedChatRef.current?.wa_id !== wa_id,
                 }
               : chat
           );
@@ -148,6 +137,7 @@ function App() {
                   ...chat,
                   lastMessage: newReply.content, // Update lastMessage
                   messages: [...chat.messages, newMessage, newReply], // Append the new message to messages array
+                  unread: selectedChatRef.current?.wa_id !== wa_id,
                 }
               : chat
           );
@@ -173,7 +163,7 @@ function App() {
           language: franc(message_content),
           input_time: formattedTime,
           weekday: offsetTime.toLocaleDateString("en-US", { weekday: "long" }),
-          conv_mode: `ai`,
+          conv_mode: "AI",
           input_content: message_content,
           response: reply_content,
         });
@@ -293,7 +283,7 @@ function App() {
       const now = new Date();
       const offsetTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
       const formattedTime = offsetTime.toISOString().split(".")[0].replace("T", " ");
-      await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/push-adminToDB`, {
+      await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/messages/store`, {
         wa_id: selectedChat.wa_id,
         name: selectedChat.name,
         language: franc(message),
@@ -356,12 +346,43 @@ function App() {
     setSelectedChat(updatedChat);
   };
 
+  // ---------------------------
+  // Handler: Chat select
+  // ---------------------------
+  const handleChatSelect = (chat: Chat) => {
+    setSelectedChat(chat);
+
+    if (chat.isAI) {
+      setAiChats((prevChats) =>
+        prevChats.map((c) =>
+          c.id === chat.id
+            ? {
+                ...c,
+                unread: false, // Mark as read when chat is opened
+              }
+            : c
+        )
+      );
+    } else {
+      setHumanChats((prevChats) =>
+        prevChats.map((c) =>
+          c.id === chat.id
+            ? {
+                ...c,
+                unread: false, // Mark as read when chat is opened
+              }
+            : c
+        )
+      );
+    }
+  };
+
   return (
     <div className="flex">
       <Sidebar
         aiChats={aiChats}
         humanChats={humanChats}
-        onChatSelect={setSelectedChat}
+        onChatSelect={handleChatSelect}
         onStatusChange={handleStatusChange}
       />
       <ChatWindow

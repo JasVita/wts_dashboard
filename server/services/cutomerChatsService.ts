@@ -39,6 +39,7 @@ interface Chat {
   }[];
   labels?: Label[];
   isImportant?: boolean;
+  unread: boolean;
 }
 
 interface Label {
@@ -79,6 +80,7 @@ export class CustomerChats {
             messages: [],
             labels: [], // Add labels later
             isImportant: isImportant,
+            unread: false,
           };
         }
         if (row.label_name) {
